@@ -62,8 +62,8 @@ def entity_pool(split: Split, vocab_size: int) -> tuple[int, int]:
 
 
 def _validate(config: GeneratorConfig) -> int:
-    if config.hop_count < 1:
-        raise InfeasibleConfigError("hop_count must be >= 1")
+    if not (1 <= config.hop_count <= 5):
+        raise InfeasibleConfigError("hop_count must be in the studied range 1..5")
     if config.distance < 0:
         raise InfeasibleConfigError("distance must be >= 0")
     if config.distractor_count < 0:
@@ -107,10 +107,14 @@ def generate_example(
 
     distractor_count = config.distractor_count
     if distractor_count > 0:
-        remaining = np.array(
-            [pool_start + i for i in range(pool_size) if pool_start + i not in chain_set]
-        )
-        decoy_objects = rng.choice(remaining, size=distractor_count, replace=True)
+        chain_array = np.fromiter(chain_set, dtype=np.int64, count=len(chain_set))
+        decoy_objects = pool_start + rng.integers(0, pool_size, size=distractor_count)
+        collides = np.isin(decoy_objects, chain_array)
+        while collides.any():
+            decoy_objects[collides] = pool_start + rng.integers(
+                0, pool_size, size=int(collides.sum())
+            )
+            collides = np.isin(decoy_objects, chain_array)
         decoy_subject_hop = rng.integers(0, config.hop_count, size=distractor_count)
     else:
         decoy_objects = np.empty(0, dtype=int)

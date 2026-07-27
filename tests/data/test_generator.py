@@ -73,6 +73,18 @@ def test_generate_example_raises_on_distractors_with_no_capacity_gaps() -> None:
         generate_example(config, split="train", rng=rng)
 
 
+def test_generate_example_raises_on_hop_count_above_studied_range() -> None:
+    config = make_config(
+        hop_count=6,
+        distance=6,
+        sequence_length=required_sequence_length(6, 6),
+        distractor_count=0,
+    )
+    rng = np.random.default_rng(0)
+    with pytest.raises(InfeasibleConfigError):
+        generate_example(config, split="train", rng=rng)
+
+
 def test_generate_example_raises_on_insufficient_vocab_pool() -> None:
     config = make_config(hop_count=3, vocab_size=3)  # needs at least hop_count + 1 entities
     rng = np.random.default_rng(0)
@@ -162,6 +174,26 @@ def test_generation_is_reproducible_given_seeded_rng() -> None:
     example_b = generate_example(config, split="train", rng=np.random.default_rng(42))
     assert np.array_equal(example_a.tokens, example_b.tokens)
     assert example_a.answer == example_b.answer
+
+
+def test_distractor_objects_valid_with_minimal_vocab_pool() -> None:
+    # vocab_size = hop_count + 2 leaves exactly one non-chain entity, forcing the
+    # rejection-sampling loop in generate_example to resample repeatedly.
+    hop_count = 3
+    distance = 6
+    config = make_config(
+        hop_count=hop_count,
+        distance=distance,
+        distractor_count=max_distractor_capacity(hop_count, distance),
+        sequence_length=required_sequence_length(hop_count, distance),
+        vocab_size=hop_count + 2,
+    )
+    rng = np.random.default_rng(0)
+    example = generate_example(config, split="train", rng=rng)
+    chain_set = set(example.chain_entities)
+    for start, end in example.distractor_spans:
+        _subj, obj, _sep = example.tokens[start:end]
+        assert obj not in chain_set
 
 
 def test_no_filler_tokens_leak_into_answer_or_query_block() -> None:
