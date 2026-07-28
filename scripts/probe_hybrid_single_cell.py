@@ -21,13 +21,23 @@ than TrainConfig's default 500 steps -- which would otherwise spend a sixth of
 the probe still warming up. A null result then means "the hybrid did not learn",
 not "the LR never got anywhere".
 
-**Reading the result.** The bar is binary and deliberately low: accuracy > 0,
-with predictions spread over more than one distinct token. Passing means the
-composition works end to end at scale. Failing does NOT by itself mean the
-hybrid is broken -- no variant in this project has ever cleared this bar at
-full scale, so there is no reference for how many steps should suffice. If this
-probe returns zero, run the identical probe on the full-attention baseline
-before concluding anything about the hybrid.
+**Reading the result -- see ADR 0012 before drawing any conclusion.** The bar is
+binary and deliberately low: accuracy > 0, with predictions spread over more
+than one distinct token. Passing means only that the composed stack trains --
+gradients flow, the shared harness drives it, loss falls.
+
+It does **not** mean the model retrieves anything. ADR 0012 established that
+distance=0 is a degenerate cell: the traversal-free "output the entity
+appearing exactly once" shortcut scores **100%** there, and at this cell's
+five-token sequence (`A B | ? A`) the even cheaper "copy the second token" also
+scores 100% with no binding and no attention to the Query. A perfect score here
+is what a working optimizer looks like, not a working retrieval mechanism.
+Treat this script as a smoke test of the forward/backward path only.
+
+Failing does NOT by itself mean the hybrid is broken -- when this was written no
+Variant had cleared the bar at full scale, so there was no reference for how
+many steps should suffice. If this probe returns zero, run the identical probe
+on the full-attention baseline before concluding anything about the hybrid.
 """
 
 import time
@@ -110,7 +120,9 @@ if __name__ == "__main__":
     print(
         "VERDICT: "
         + (
-            "PASS -- accuracy left zero, hybrid learns at full scale"
+            "PASS -- the composed stack trains (forward/backward path works). "
+            "NOT evidence of retrieval or binding: distance=0 is degenerate, "
+            "see ADR 0012"
             if accuracy > 0.0 and distinct > 1
             else "NULL -- see this script's docstring; run the same probe on the "
             "baseline before concluding the hybrid is at fault"

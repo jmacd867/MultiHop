@@ -89,30 +89,41 @@ because the wall had already been removed.
 (1000-1500 and 2000-2750 were all 1.0000; the single 0.9980 readings are one
 example of 512.)
 
+> **Corrected by ADR 0012 (2026-07-28, after this run).** This section
+> originally read the 1.0000 as "the first demonstration of real task
+> performance at full scale by any Variant", benchmarked against ~0.000125
+> chance over the vocabulary. Both are wrong. ADR 0012 established that the
+> task has a traversal-free "output the entity appearing exactly once"
+> shortcut whose floor at **distance=0 is 100%**, not chance -- so this cell
+> is *degenerate* and a perfect score there is the expected result for a model
+> doing no retrieval at all. The claims below are the corrected ones; the
+> original text is preserved in git history rather than silently rewritten.
+
 **What this establishes.** The composition works end to end at full model
 scale: gradients flow through a stack that alternates two different
 token-mixing mechanisms, the shared training and eval harness drives it
-unmodified, and the model reaches ceiling on the easiest Grid Cell in under
-750 steps. Chance over the 8,003-token vocabulary is ~0.000125, so even the
-step-250 reading of 0.3184 is ~2,500x chance. This is the **first demonstration
-of real task performance at full scale by any Variant in this project** -- the
-baseline's only full-length run was the pre-ADR-0008 memorization failure, and
-the pure-KDA sanity run explicitly disclaims any performance claim.
+unmodified, and loss falls steadily to a stable optimum. That was the probe's
+actual purpose -- a smoke test of the forward/backward path through a
+heterogeneous stack -- and that conclusion stands.
 
-**What it does NOT establish.** hop_count=1, distance=0 is the trivially
-easiest cell: a single-hop lookup, no gap between Chain Facts, and (per
-ADR 0004) zero Distractors. Solving it demonstrates in-context binding and a
-working forward/backward path -- **not multi-hop reasoning**, which is the thing
-the Degradation Grid actually measures. Nothing here predicts the hybrid's
-behavior at hop_count=5, distance=45, and the probe was never intended to.
+**What it does NOT establish -- including things this README first claimed it
+did.** hop_count=1, distance=0 is not merely the easiest cell; per ADR 0012 it
+is the *most degenerate* cell in the grid. Its entire sequence is five tokens
+(`A B | ? A`, answer `B`), the answer is the only once-appearing entity in
+512/512 examples, and an even cheaper strategy also scores 100%: **copy the
+second token**, which needs no binding, no retrieval, and no attention to the
+Query at all. So this run is evidence of **neither multi-hop reasoning nor
+in-context binding nor retrieval of any kind**. Reaching 1.0000 here is what a
+working optimizer looks like, not what a working retrieval mechanism looks
+like.
 
 **On the `distinct_predictions` column.** It is pinned at 496/512 from step 500
 onward because the probe scores a *fixed* seeded batch, so 496 is simply the
-number of distinct true answers in that batch. The metric is only an
-independent signal at low accuracy -- step 250's 420 distinct at 31.8% accuracy
-is what actually rules out ADR 0008's input-invariance collapse mode. Once
-accuracy approaches 1.0 the column is pinned by the data and carries no
-additional information.
+number of distinct true answers in that batch -- no information once accuracy
+is high. Step 250's 420 distinct at 31.8% does rule out ADR 0008's
+input-invariance collapse (predictions genuinely vary with input), but note
+that "copy the second token" also produces input-varying predictions, so this
+rules out a specific pathology rather than establishing binding.
 
 **Interpreting a hypothetical failure.** Had this probe returned zero, it would
 *not* have implicated the hybrid on its own: no Variant had previously cleared
