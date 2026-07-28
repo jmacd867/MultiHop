@@ -124,9 +124,9 @@ def render_steps_to_criterion(
     print(f"  steps to reach {CRITERION_HEADROOM:.0%} of headroom above the ADR 0012 shortcut floor")
     print("  ('never' = not reached within the run; lower is better)")
     all_steps = [steps_to_criterion(curves, (hop, d)) for hop in HOP_COUNTS for d in DISTANCES]
-    reached = [s for s in all_steps if s is not None]
-    if reached:
-        distinct = sorted(set(reached))
+    reached_steps = [s for s in all_steps if s is not None]
+    if reached_steps:
+        distinct = sorted(set(reached_steps))
         print(f"  RESOLUTION: eval cadence is {EVAL_EVERY} steps, and this Variant's cells "
               f"resolve to only {len(distinct)} distinct value(s) {distinct}.")
         if len(distinct) <= 3:
