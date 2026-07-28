@@ -1,0 +1,194 @@
+variant=hybrid positional_encoding=none params=131,010,732
+
+=== phase 1: train_step_accum sweep ===
+train hop_count=1 distance=0 seq_len=5 compiled=True elapsed=22.7198s loss=18.3599 sys_mem=100.3GB
+train hop_count=1 distance=0 seq_len=5 compiled=False elapsed=0.3922s loss=18.3550 sys_mem=100.3GB
+train hop_count=1 distance=0 seq_len=5 compiled=False elapsed=0.3874s loss=18.2814 sys_mem=100.3GB
+train hop_count=1 distance=0 seq_len=5 compiled=False elapsed=0.3991s loss=18.3306 sys_mem=100.2GB
+train hop_count=1 distance=3 seq_len=11 compiled=True elapsed=23.6488s loss=18.3480 sys_mem=100.5GB
+train hop_count=1 distance=3 seq_len=11 compiled=False elapsed=0.4394s loss=18.2711 sys_mem=100.5GB
+train hop_count=1 distance=3 seq_len=11 compiled=False elapsed=0.4375s loss=18.2879 sys_mem=100.5GB
+train hop_count=1 distance=3 seq_len=11 compiled=False elapsed=0.4373s loss=18.3118 sys_mem=100.5GB
+train hop_count=1 distance=9 seq_len=23 compiled=True elapsed=24.9206s loss=17.8112 sys_mem=100.7GB
+train hop_count=1 distance=9 seq_len=23 compiled=False elapsed=0.5577s loss=17.6092 sys_mem=100.7GB
+train hop_count=1 distance=9 seq_len=23 compiled=False elapsed=0.6194s loss=17.5867 sys_mem=100.7GB
+train hop_count=1 distance=9 seq_len=23 compiled=False elapsed=0.5624s loss=17.2219 sys_mem=100.7GB
+train hop_count=1 distance=21 seq_len=47 compiled=True elapsed=30.0830s loss=16.1239 sys_mem=101.1GB
+train hop_count=1 distance=21 seq_len=47 compiled=False elapsed=1.2742s loss=15.4705 sys_mem=101.0GB
+train hop_count=1 distance=21 seq_len=47 compiled=False elapsed=1.2711s loss=14.8116 sys_mem=101.0GB
+train hop_count=1 distance=21 seq_len=47 compiled=False elapsed=1.3608s loss=14.0437 sys_mem=101.0GB
+train hop_count=1 distance=45 seq_len=95 compiled=True elapsed=31.3382s loss=12.3548 sys_mem=101.4GB
+train hop_count=1 distance=45 seq_len=95 compiled=False elapsed=2.0650s loss=11.6839 sys_mem=101.4GB
+train hop_count=1 distance=45 seq_len=95 compiled=False elapsed=2.0601s loss=11.1385 sys_mem=101.4GB
+train hop_count=1 distance=45 seq_len=95 compiled=False elapsed=2.0684s loss=10.7912 sys_mem=101.4GB
+train hop_count=2 distance=0 seq_len=8 compiled=True elapsed=21.7942s loss=18.0497 sys_mem=101.5GB
+train hop_count=2 distance=0 seq_len=8 compiled=False elapsed=0.6025s loss=18.1207 sys_mem=101.5GB
+train hop_count=2 distance=0 seq_len=8 compiled=False elapsed=0.4200s loss=18.0958 sys_mem=101.5GB
+train hop_count=2 distance=0 seq_len=8 compiled=False elapsed=0.4183s loss=18.0003 sys_mem=101.5GB
+train hop_count=2 distance=3 seq_len=17 compiled=True elapsed=25.9451s loss=17.2959 sys_mem=101.8GB
+train hop_count=2 distance=3 seq_len=17 compiled=False elapsed=0.5067s loss=17.2408 sys_mem=101.8GB
+train hop_count=2 distance=3 seq_len=17 compiled=False elapsed=0.5033s loss=17.1719 sys_mem=101.8GB
+train hop_count=2 distance=3 seq_len=17 compiled=False elapsed=0.5029s loss=17.0925 sys_mem=101.8GB
+train hop_count=2 distance=9 seq_len=35 compiled=True elapsed=28.5011s loss=13.4803 sys_mem=102.0GB
+train hop_count=2 distance=9 seq_len=35 compiled=False elapsed=1.1305s loss=13.3843 sys_mem=102.0GB
+train hop_count=2 distance=9 seq_len=35 compiled=False elapsed=1.1288s loss=13.4079 sys_mem=102.0GB
+train hop_count=2 distance=9 seq_len=35 compiled=False elapsed=1.1320s loss=13.2878 sys_mem=102.0GB
+train hop_count=2 distance=21 seq_len=71 compiled=True elapsed=31.3569s loss=11.3847 sys_mem=102.3GB
+train hop_count=2 distance=21 seq_len=71 compiled=False elapsed=1.8048s loss=11.2887 sys_mem=102.3GB
+train hop_count=2 distance=21 seq_len=71 compiled=False elapsed=1.8060s loss=11.1789 sys_mem=102.2GB
+train hop_count=2 distance=21 seq_len=71 compiled=False elapsed=1.8138s loss=11.1769 sys_mem=102.2GB
+train hop_count=2 distance=45 seq_len=143 compiled=True elapsed=34.6676s loss=10.1711 sys_mem=102.4GB
+train hop_count=2 distance=45 seq_len=143 compiled=False elapsed=3.2370s loss=10.2510 sys_mem=102.4GB
+train hop_count=2 distance=45 seq_len=143 compiled=False elapsed=3.2618s loss=10.1745 sys_mem=102.4GB
+train hop_count=2 distance=45 seq_len=143 compiled=False elapsed=3.2588s loss=10.1477 sys_mem=102.4GB
+train hop_count=3 distance=0 seq_len=11 compiled=False elapsed=0.4616s loss=17.5205 sys_mem=102.4GB
+train hop_count=3 distance=0 seq_len=11 compiled=False elapsed=0.4450s loss=17.4428 sys_mem=102.4GB
+train hop_count=3 distance=0 seq_len=11 compiled=False elapsed=0.4401s loss=17.3331 sys_mem=102.4GB
+train hop_count=3 distance=0 seq_len=11 compiled=False elapsed=0.4421s loss=17.2795 sys_mem=102.4GB
+train hop_count=3 distance=3 seq_len=23 compiled=False elapsed=0.5815s loss=15.5846 sys_mem=102.5GB
+train hop_count=3 distance=3 seq_len=23 compiled=False elapsed=0.5680s loss=15.5487 sys_mem=102.5GB
+train hop_count=3 distance=3 seq_len=23 compiled=False elapsed=0.5690s loss=15.3280 sys_mem=102.5GB
+train hop_count=3 distance=3 seq_len=23 compiled=False elapsed=0.5690s loss=15.2079 sys_mem=102.5GB
+train hop_count=3 distance=9 seq_len=47 compiled=False elapsed=1.2906s loss=12.1544 sys_mem=102.5GB
+train hop_count=3 distance=9 seq_len=47 compiled=False elapsed=1.2838s loss=12.1240 sys_mem=102.5GB
+train hop_count=3 distance=9 seq_len=47 compiled=False elapsed=1.2771s loss=12.1080 sys_mem=102.5GB
+train hop_count=3 distance=9 seq_len=47 compiled=False elapsed=1.2849s loss=12.0432 sys_mem=102.5GB
+train hop_count=3 distance=21 seq_len=95 compiled=False elapsed=2.1148s loss=10.9763 sys_mem=102.5GB
+train hop_count=3 distance=21 seq_len=95 compiled=False elapsed=2.0801s loss=10.7582 sys_mem=102.5GB
+train hop_count=3 distance=21 seq_len=95 compiled=False elapsed=2.0738s loss=10.7850 sys_mem=102.5GB
+train hop_count=3 distance=21 seq_len=95 compiled=False elapsed=2.0831s loss=10.7888 sys_mem=102.5GB
+train hop_count=3 distance=45 seq_len=191 compiled=True elapsed=36.7851s loss=9.9845 sys_mem=102.9GB
+train hop_count=3 distance=45 seq_len=191 compiled=False elapsed=4.1733s loss=9.9681 sys_mem=102.9GB
+train hop_count=3 distance=45 seq_len=191 compiled=False elapsed=4.1603s loss=9.9447 sys_mem=102.9GB
+train hop_count=3 distance=45 seq_len=191 compiled=False elapsed=4.1514s loss=9.9660 sys_mem=102.9GB
+train hop_count=4 distance=0 seq_len=14 compiled=True elapsed=23.5151s loss=17.7467 sys_mem=103.1GB
+train hop_count=4 distance=0 seq_len=14 compiled=False elapsed=0.4673s loss=17.6362 sys_mem=103.1GB
+train hop_count=4 distance=0 seq_len=14 compiled=False elapsed=0.4713s loss=17.6117 sys_mem=103.1GB
+train hop_count=4 distance=0 seq_len=14 compiled=False elapsed=0.4719s loss=17.2837 sys_mem=103.1GB
+train hop_count=4 distance=3 seq_len=29 compiled=True elapsed=24.4135s loss=14.7196 sys_mem=103.3GB
+train hop_count=4 distance=3 seq_len=29 compiled=False elapsed=0.6365s loss=14.5932 sys_mem=103.3GB
+train hop_count=4 distance=3 seq_len=29 compiled=False elapsed=0.6202s loss=14.4264 sys_mem=103.3GB
+train hop_count=4 distance=3 seq_len=29 compiled=False elapsed=0.6262s loss=14.2207 sys_mem=103.3GB
+train hop_count=4 distance=9 seq_len=59 compiled=True elapsed=29.8008s loss=12.0710 sys_mem=103.5GB
+train hop_count=4 distance=9 seq_len=59 compiled=False elapsed=1.3745s loss=11.8941 sys_mem=103.5GB
+train hop_count=4 distance=9 seq_len=59 compiled=False elapsed=1.3931s loss=11.8034 sys_mem=103.5GB
+train hop_count=4 distance=9 seq_len=59 compiled=False elapsed=1.3895s loss=11.7073 sys_mem=103.5GB
+train hop_count=4 distance=21 seq_len=119 compiled=True elapsed=33.4647s loss=10.6008 sys_mem=103.8GB
+train hop_count=4 distance=21 seq_len=119 compiled=False elapsed=2.6524s loss=10.5488 sys_mem=103.7GB
+train hop_count=4 distance=21 seq_len=119 compiled=False elapsed=2.6403s loss=10.5657 sys_mem=103.7GB
+train hop_count=4 distance=21 seq_len=119 compiled=False elapsed=2.6412s loss=10.5000 sys_mem=103.7GB
+train hop_count=4 distance=45 seq_len=239 compiled=True elapsed=36.8937s loss=10.0277 sys_mem=104.0GB
+train hop_count=4 distance=45 seq_len=239 compiled=False elapsed=5.1632s loss=9.9244 sys_mem=104.0GB
+train hop_count=4 distance=45 seq_len=239 compiled=False elapsed=5.1555s loss=9.8789 sys_mem=104.0GB
+train hop_count=4 distance=45 seq_len=239 compiled=False elapsed=5.1389s loss=9.8940 sys_mem=104.0GB
+train hop_count=5 distance=0 seq_len=17 compiled=False elapsed=0.5251s loss=16.5483 sys_mem=104.0GB
+train hop_count=5 distance=0 seq_len=17 compiled=False elapsed=0.5137s loss=16.5220 sys_mem=104.0GB
+train hop_count=5 distance=0 seq_len=17 compiled=False elapsed=0.5101s loss=16.4868 sys_mem=104.0GB
+train hop_count=5 distance=0 seq_len=17 compiled=False elapsed=0.5137s loss=16.3233 sys_mem=104.0GB
+train hop_count=5 distance=3 seq_len=35 compiled=False elapsed=1.1512s loss=14.6761 sys_mem=104.0GB
+train hop_count=5 distance=3 seq_len=35 compiled=False elapsed=1.1417s loss=14.5244 sys_mem=104.0GB
+train hop_count=5 distance=3 seq_len=35 compiled=False elapsed=1.1417s loss=14.5893 sys_mem=104.0GB
+train hop_count=5 distance=3 seq_len=35 compiled=False elapsed=1.1399s loss=14.4317 sys_mem=104.0GB
+train hop_count=5 distance=9 seq_len=71 compiled=False elapsed=1.8427s loss=11.8625 sys_mem=104.0GB
+train hop_count=5 distance=9 seq_len=71 compiled=False elapsed=1.8094s loss=11.9181 sys_mem=104.0GB
+train hop_count=5 distance=9 seq_len=71 compiled=False elapsed=1.8200s loss=11.7813 sys_mem=104.0GB
+train hop_count=5 distance=9 seq_len=71 compiled=False elapsed=1.8103s loss=11.7003 sys_mem=104.0GB
+train hop_count=5 distance=21 seq_len=143 compiled=False elapsed=3.2812s loss=10.5535 sys_mem=104.0GB
+train hop_count=5 distance=21 seq_len=143 compiled=False elapsed=3.2617s loss=10.4247 sys_mem=103.9GB
+train hop_count=5 distance=21 seq_len=143 compiled=False elapsed=3.2622s loss=10.4359 sys_mem=103.9GB
+train hop_count=5 distance=21 seq_len=143 compiled=False elapsed=3.7240s loss=10.4203 sys_mem=103.9GB
+train hop_count=5 distance=45 seq_len=287 compiled=True elapsed=39.7960s loss=10.0143 sys_mem=104.2GB
+train hop_count=5 distance=45 seq_len=287 compiled=False elapsed=6.0422s loss=9.8015 sys_mem=104.2GB
+train hop_count=5 distance=45 seq_len=287 compiled=False elapsed=6.0068s loss=9.8866 sys_mem=104.2GB
+train hop_count=5 distance=45 seq_len=287 compiled=False elapsed=6.0365s loss=9.8667 sys_mem=104.2GB
+
+=== phase 2: evaluate_grid, 512 examples/cell, longest sequence first ===
+eval1 hop_count=5 distance=45 seq_len=287 elapsed=74.6206s accuracy=0.0000 sys_mem=104.2GB
+eval1 hop_count=4 distance=45 seq_len=239 elapsed=61.4236s accuracy=0.0000 sys_mem=104.2GB
+eval1 hop_count=3 distance=45 seq_len=191 elapsed=48.4468s accuracy=0.0000 sys_mem=104.3GB
+eval1 hop_count=2 distance=45 seq_len=143 elapsed=39.5686s accuracy=0.0000 sys_mem=104.5GB
+eval1 hop_count=5 distance=21 seq_len=143 elapsed=3.7659s accuracy=0.0000 sys_mem=104.6GB
+eval1 hop_count=4 distance=21 seq_len=119 elapsed=33.8331s accuracy=0.0000 sys_mem=104.6GB
+eval1 hop_count=1 distance=45 seq_len=95 elapsed=28.0668s accuracy=0.0000 sys_mem=104.7GB
+eval1 hop_count=3 distance=21 seq_len=95 elapsed=2.9331s accuracy=0.0000 sys_mem=104.9GB
+eval1 hop_count=2 distance=21 seq_len=71 elapsed=23.7388s accuracy=0.0000 sys_mem=104.8GB
+eval1 hop_count=5 distance=9 seq_len=71 elapsed=2.7672s accuracy=0.0000 sys_mem=105.0GB
+eval1 hop_count=4 distance=9 seq_len=59 elapsed=21.0492s accuracy=0.0000 sys_mem=105.0GB
+eval1 hop_count=1 distance=21 seq_len=47 elapsed=18.4066s accuracy=0.0000 sys_mem=105.2GB
+eval1 hop_count=3 distance=9 seq_len=47 elapsed=2.3373s accuracy=0.0000 sys_mem=105.3GB
+eval1 hop_count=2 distance=9 seq_len=35 elapsed=16.4403s accuracy=0.0000 sys_mem=105.3GB
+eval1 hop_count=5 distance=3 seq_len=35 elapsed=2.2450s accuracy=0.0000 sys_mem=105.4GB
+eval1 hop_count=4 distance=3 seq_len=29 elapsed=14.8854s accuracy=0.0000 sys_mem=105.4GB
+eval1 hop_count=1 distance=9 seq_len=23 elapsed=13.3350s accuracy=0.0000 sys_mem=105.6GB
+eval1 hop_count=3 distance=3 seq_len=23 elapsed=1.9377s accuracy=0.0000 sys_mem=105.7GB
+eval1 hop_count=2 distance=3 seq_len=17 elapsed=11.7317s accuracy=0.0000 sys_mem=105.7GB
+eval1 hop_count=5 distance=0 seq_len=17 elapsed=1.8505s accuracy=0.0000 sys_mem=105.8GB
+eval1 hop_count=4 distance=0 seq_len=14 elapsed=10.8413s accuracy=0.0000 sys_mem=105.8GB
+eval1 hop_count=1 distance=3 seq_len=11 elapsed=9.8131s accuracy=0.0000 sys_mem=105.9GB
+eval1 hop_count=3 distance=0 seq_len=11 elapsed=1.7530s accuracy=0.0000 sys_mem=106.0GB
+eval1 hop_count=2 distance=0 seq_len=8 elapsed=9.4972s accuracy=0.0000 sys_mem=106.0GB
+eval1 hop_count=1 distance=0 seq_len=5 elapsed=8.8067s accuracy=0.0000 sys_mem=106.2GB
+eval pass 1 total: 464.1s
+eval2 hop_count=5 distance=45 seq_len=287 elapsed=6.2481s accuracy=0.0000 sys_mem=106.2GB
+eval2 hop_count=4 distance=45 seq_len=239 elapsed=5.5379s accuracy=0.0000 sys_mem=106.3GB
+eval2 hop_count=3 distance=45 seq_len=191 elapsed=4.6218s accuracy=0.0000 sys_mem=106.3GB
+eval2 hop_count=2 distance=45 seq_len=143 elapsed=3.9754s accuracy=0.0000 sys_mem=106.3GB
+eval2 hop_count=5 distance=21 seq_len=143 elapsed=3.9387s accuracy=0.0000 sys_mem=106.4GB
+eval2 hop_count=4 distance=21 seq_len=119 elapsed=3.5663s accuracy=0.0000 sys_mem=106.4GB
+eval2 hop_count=1 distance=45 seq_len=95 elapsed=3.0919s accuracy=0.0000 sys_mem=106.4GB
+eval2 hop_count=3 distance=21 seq_len=95 elapsed=3.3045s accuracy=0.0000 sys_mem=106.5GB
+eval2 hop_count=2 distance=21 seq_len=71 elapsed=2.8793s accuracy=0.0000 sys_mem=106.5GB
+eval2 hop_count=5 distance=9 seq_len=71 elapsed=2.9935s accuracy=0.0000 sys_mem=106.5GB
+eval2 hop_count=4 distance=9 seq_len=59 elapsed=2.5667s accuracy=0.0000 sys_mem=106.5GB
+eval2 hop_count=1 distance=21 seq_len=47 elapsed=2.4483s accuracy=0.0000 sys_mem=106.5GB
+eval2 hop_count=3 distance=9 seq_len=47 elapsed=2.4326s accuracy=0.0000 sys_mem=106.6GB
+eval2 hop_count=2 distance=9 seq_len=35 elapsed=2.3422s accuracy=0.0000 sys_mem=106.6GB
+eval2 hop_count=5 distance=3 seq_len=35 elapsed=2.3242s accuracy=0.0000 sys_mem=106.6GB
+eval2 hop_count=4 distance=3 seq_len=29 elapsed=1.9348s accuracy=0.0000 sys_mem=106.7GB
+eval2 hop_count=1 distance=9 seq_len=23 elapsed=2.0148s accuracy=0.0000 sys_mem=106.7GB
+eval2 hop_count=3 distance=3 seq_len=23 elapsed=1.9526s accuracy=0.0000 sys_mem=106.8GB
+eval2 hop_count=2 distance=3 seq_len=17 elapsed=1.8944s accuracy=0.0000 sys_mem=106.8GB
+eval2 hop_count=5 distance=0 seq_len=17 elapsed=1.8626s accuracy=0.0000 sys_mem=106.8GB
+eval2 hop_count=4 distance=0 seq_len=14 elapsed=1.9242s accuracy=0.0000 sys_mem=106.8GB
+eval2 hop_count=1 distance=3 seq_len=11 elapsed=1.8286s accuracy=0.0000 sys_mem=106.8GB
+eval2 hop_count=3 distance=0 seq_len=11 elapsed=1.8876s accuracy=0.0000 sys_mem=106.8GB
+eval2 hop_count=2 distance=0 seq_len=8 elapsed=1.8092s accuracy=0.0000 sys_mem=106.9GB
+eval2 hop_count=1 distance=0 seq_len=5 elapsed=1.7206s accuracy=0.0000 sys_mem=106.9GB
+eval pass 2 total: 71.1s
+
+wrote per-step log to /home/kalin/coding/multihop-kda-experiment/timing_run_hybrid.csv
+
+=== per-cell steady-state (compiled steps excluded) ===
+(1, 0): seq_len=5 mean=0.3929s n=3
+(1, 3): seq_len=11 mean=0.4380s n=3
+(1, 9): seq_len=23 mean=0.5798s n=3
+(1, 21): seq_len=47 mean=1.3020s n=3
+(1, 45): seq_len=95 mean=2.0645s n=3
+(2, 0): seq_len=8 mean=0.4803s n=3
+(2, 3): seq_len=17 mean=0.5043s n=3
+(2, 9): seq_len=35 mean=1.1304s n=3
+(2, 21): seq_len=71 mean=1.8082s n=3
+(2, 45): seq_len=143 mean=3.2525s n=3
+(3, 0): seq_len=11 mean=0.4472s n=4
+(3, 3): seq_len=23 mean=0.5719s n=4
+(3, 9): seq_len=47 mean=1.2841s n=4
+(3, 21): seq_len=95 mean=2.0880s n=4
+(3, 45): seq_len=191 mean=4.1617s n=3
+(4, 0): seq_len=14 mean=0.4702s n=3
+(4, 3): seq_len=29 mean=0.6276s n=3
+(4, 9): seq_len=59 mean=1.3857s n=3
+(4, 21): seq_len=119 mean=2.6446s n=3
+(4, 45): seq_len=239 mean=5.1525s n=3
+(5, 0): seq_len=17 mean=0.5157s n=4
+(5, 3): seq_len=35 mean=1.1436s n=4
+(5, 9): seq_len=71 mean=1.8206s n=4
+(5, 21): seq_len=143 mean=3.3823s n=4
+(5, 45): seq_len=287 mean=6.0285s n=3
+
+=== hybrid: 20000-step budget ===
+uniform-cell-weighted per-step: 1.7471s
+train steady-state:        9.71h
+train compile (17 shapes):   0.14h (500s, one-time)
+eval (40 grids):          0.90h (first 464s incl. compile, steady 71s each)
+TOTAL:                    10.74h (excludes checkpoint writes, ~20 x a few seconds)
+peak system memory: 106.9GB

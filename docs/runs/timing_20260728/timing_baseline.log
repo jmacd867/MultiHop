@@ -1,0 +1,194 @@
+variant=baseline positional_encoding=rope params=119,411,712
+
+=== phase 1: train_step_accum sweep ===
+train hop_count=1 distance=0 seq_len=5 compiled=True elapsed=12.8490s loss=18.2054 peak_host=4.9GB
+train hop_count=1 distance=0 seq_len=5 compiled=False elapsed=0.2473s loss=18.2595 peak_host=4.9GB
+train hop_count=1 distance=0 seq_len=5 compiled=False elapsed=0.2486s loss=18.2762 peak_host=4.9GB
+train hop_count=1 distance=0 seq_len=5 compiled=False elapsed=0.2461s loss=18.2072 peak_host=4.9GB
+train hop_count=1 distance=3 seq_len=11 compiled=True elapsed=14.6245s loss=18.2502 peak_host=4.9GB
+train hop_count=1 distance=3 seq_len=11 compiled=False elapsed=0.2783s loss=18.0954 peak_host=4.9GB
+train hop_count=1 distance=3 seq_len=11 compiled=False elapsed=0.2805s loss=18.1840 peak_host=4.9GB
+train hop_count=1 distance=3 seq_len=11 compiled=False elapsed=0.2805s loss=18.0607 peak_host=4.9GB
+train hop_count=1 distance=9 seq_len=23 compiled=True elapsed=15.7710s loss=17.8146 peak_host=4.9GB
+train hop_count=1 distance=9 seq_len=23 compiled=False elapsed=0.3839s loss=17.4012 peak_host=4.9GB
+train hop_count=1 distance=9 seq_len=23 compiled=False elapsed=0.3794s loss=16.7094 peak_host=4.9GB
+train hop_count=1 distance=9 seq_len=23 compiled=False elapsed=0.3809s loss=16.0205 peak_host=4.9GB
+train hop_count=1 distance=21 seq_len=47 compiled=True elapsed=16.8922s loss=13.3861 peak_host=5.0GB
+train hop_count=1 distance=21 seq_len=47 compiled=False elapsed=0.6109s loss=12.5994 peak_host=5.0GB
+train hop_count=1 distance=21 seq_len=47 compiled=False elapsed=0.5994s loss=12.1749 peak_host=5.0GB
+train hop_count=1 distance=21 seq_len=47 compiled=False elapsed=0.6077s loss=12.2625 peak_host=5.0GB
+train hop_count=1 distance=45 seq_len=95 compiled=True elapsed=20.1595s loss=11.0172 peak_host=5.1GB
+train hop_count=1 distance=45 seq_len=95 compiled=False elapsed=1.0910s loss=11.0393 peak_host=5.1GB
+train hop_count=1 distance=45 seq_len=95 compiled=False elapsed=1.0842s loss=10.8929 peak_host=5.1GB
+train hop_count=1 distance=45 seq_len=95 compiled=False elapsed=1.0893s loss=10.8159 peak_host=5.1GB
+train hop_count=2 distance=0 seq_len=8 compiled=True elapsed=12.8530s loss=17.5368 peak_host=5.2GB
+train hop_count=2 distance=0 seq_len=8 compiled=False elapsed=0.2670s loss=17.4372 peak_host=5.2GB
+train hop_count=2 distance=0 seq_len=8 compiled=False elapsed=0.2718s loss=17.2238 peak_host=5.2GB
+train hop_count=2 distance=0 seq_len=8 compiled=False elapsed=0.2693s loss=17.1699 peak_host=5.2GB
+train hop_count=2 distance=3 seq_len=17 compiled=True elapsed=15.7653s loss=16.3530 peak_host=5.3GB
+train hop_count=2 distance=3 seq_len=17 compiled=False elapsed=0.3360s loss=16.1589 peak_host=5.3GB
+train hop_count=2 distance=3 seq_len=17 compiled=False elapsed=0.3373s loss=15.8700 peak_host=5.3GB
+train hop_count=2 distance=3 seq_len=17 compiled=False elapsed=0.3333s loss=15.8390 peak_host=5.3GB
+train hop_count=2 distance=9 seq_len=35 compiled=True elapsed=16.8521s loss=13.1033 peak_host=5.4GB
+train hop_count=2 distance=9 seq_len=35 compiled=False elapsed=0.4957s loss=12.8153 peak_host=5.4GB
+train hop_count=2 distance=9 seq_len=35 compiled=False elapsed=0.4892s loss=12.9909 peak_host=5.4GB
+train hop_count=2 distance=9 seq_len=35 compiled=False elapsed=0.4966s loss=12.9179 peak_host=5.4GB
+train hop_count=2 distance=21 seq_len=71 compiled=True elapsed=18.8963s loss=11.3048 peak_host=5.5GB
+train hop_count=2 distance=21 seq_len=71 compiled=False elapsed=0.8494s loss=11.2340 peak_host=5.5GB
+train hop_count=2 distance=21 seq_len=71 compiled=False elapsed=0.8512s loss=11.1445 peak_host=5.5GB
+train hop_count=2 distance=21 seq_len=71 compiled=False elapsed=0.8480s loss=11.1137 peak_host=5.5GB
+train hop_count=2 distance=45 seq_len=143 compiled=True elapsed=21.7780s loss=10.1967 peak_host=5.7GB
+train hop_count=2 distance=45 seq_len=143 compiled=False elapsed=1.6729s loss=10.1457 peak_host=5.7GB
+train hop_count=2 distance=45 seq_len=143 compiled=False elapsed=1.6627s loss=10.1351 peak_host=5.7GB
+train hop_count=2 distance=45 seq_len=143 compiled=False elapsed=1.6666s loss=10.1098 peak_host=5.7GB
+train hop_count=3 distance=0 seq_len=11 compiled=False elapsed=0.2895s loss=18.6325 peak_host=5.7GB
+train hop_count=3 distance=0 seq_len=11 compiled=False elapsed=0.2818s loss=17.7627 peak_host=5.7GB
+train hop_count=3 distance=0 seq_len=11 compiled=False elapsed=0.4116s loss=16.6001 peak_host=5.7GB
+train hop_count=3 distance=0 seq_len=11 compiled=False elapsed=0.2800s loss=16.0694 peak_host=5.7GB
+train hop_count=3 distance=3 seq_len=23 compiled=False elapsed=0.3891s loss=15.1930 peak_host=5.7GB
+train hop_count=3 distance=3 seq_len=23 compiled=False elapsed=0.3843s loss=15.2244 peak_host=5.7GB
+train hop_count=3 distance=3 seq_len=23 compiled=False elapsed=0.3840s loss=15.2899 peak_host=5.7GB
+train hop_count=3 distance=3 seq_len=23 compiled=False elapsed=0.3823s loss=15.1892 peak_host=5.7GB
+train hop_count=3 distance=9 seq_len=47 compiled=False elapsed=0.6117s loss=12.4140 peak_host=5.7GB
+train hop_count=3 distance=9 seq_len=47 compiled=False elapsed=0.6089s loss=12.1828 peak_host=5.7GB
+train hop_count=3 distance=9 seq_len=47 compiled=False elapsed=0.6017s loss=12.3801 peak_host=5.7GB
+train hop_count=3 distance=9 seq_len=47 compiled=False elapsed=0.6089s loss=12.5779 peak_host=5.7GB
+train hop_count=3 distance=21 seq_len=95 compiled=False elapsed=1.0897s loss=10.7089 peak_host=5.7GB
+train hop_count=3 distance=21 seq_len=95 compiled=False elapsed=1.0865s loss=10.6715 peak_host=5.7GB
+train hop_count=3 distance=21 seq_len=95 compiled=False elapsed=1.0872s loss=10.7204 peak_host=5.7GB
+train hop_count=3 distance=21 seq_len=95 compiled=False elapsed=1.0885s loss=10.6745 peak_host=5.7GB
+train hop_count=3 distance=45 seq_len=191 compiled=True elapsed=24.1271s loss=9.9426 peak_host=5.8GB
+train hop_count=3 distance=45 seq_len=191 compiled=False elapsed=2.3611s loss=9.9345 peak_host=5.8GB
+train hop_count=3 distance=45 seq_len=191 compiled=False elapsed=2.3615s loss=9.9685 peak_host=5.8GB
+train hop_count=3 distance=45 seq_len=191 compiled=False elapsed=2.3620s loss=9.9980 peak_host=5.8GB
+train hop_count=4 distance=0 seq_len=14 compiled=True elapsed=14.4592s loss=16.9259 peak_host=5.9GB
+train hop_count=4 distance=0 seq_len=14 compiled=False elapsed=0.3124s loss=16.6157 peak_host=5.9GB
+train hop_count=4 distance=0 seq_len=14 compiled=False elapsed=0.3093s loss=16.3051 peak_host=5.9GB
+train hop_count=4 distance=0 seq_len=14 compiled=False elapsed=0.3128s loss=15.8826 peak_host=5.9GB
+train hop_count=4 distance=3 seq_len=29 compiled=True elapsed=16.0308s loss=14.6197 peak_host=6.0GB
+train hop_count=4 distance=3 seq_len=29 compiled=False elapsed=0.4362s loss=14.5456 peak_host=6.0GB
+train hop_count=4 distance=3 seq_len=29 compiled=False elapsed=0.4271s loss=14.6173 peak_host=6.0GB
+train hop_count=4 distance=3 seq_len=29 compiled=False elapsed=0.4328s loss=14.5950 peak_host=6.0GB
+train hop_count=4 distance=9 seq_len=59 compiled=True elapsed=18.0370s loss=12.6348 peak_host=6.1GB
+train hop_count=4 distance=9 seq_len=59 compiled=False elapsed=0.7050s loss=12.1762 peak_host=6.1GB
+train hop_count=4 distance=9 seq_len=59 compiled=False elapsed=0.7089s loss=11.9643 peak_host=6.1GB
+train hop_count=4 distance=9 seq_len=59 compiled=False elapsed=0.7095s loss=11.9244 peak_host=6.1GB
+train hop_count=4 distance=21 seq_len=119 compiled=True elapsed=21.7097s loss=10.5661 peak_host=6.2GB
+train hop_count=4 distance=21 seq_len=119 compiled=False elapsed=1.3555s loss=10.6275 peak_host=6.2GB
+train hop_count=4 distance=21 seq_len=119 compiled=False elapsed=1.3510s loss=10.6100 peak_host=6.2GB
+train hop_count=4 distance=21 seq_len=119 compiled=False elapsed=1.3549s loss=10.5352 peak_host=6.2GB
+train hop_count=4 distance=45 seq_len=239 compiled=True elapsed=24.0375s loss=9.9172 peak_host=6.3GB
+train hop_count=4 distance=45 seq_len=239 compiled=False elapsed=2.7931s loss=9.9297 peak_host=6.3GB
+train hop_count=4 distance=45 seq_len=239 compiled=False elapsed=2.7930s loss=9.8569 peak_host=6.3GB
+train hop_count=4 distance=45 seq_len=239 compiled=False elapsed=2.7937s loss=9.9162 peak_host=6.3GB
+train hop_count=5 distance=0 seq_len=17 compiled=False elapsed=0.3431s loss=16.2622 peak_host=6.3GB
+train hop_count=5 distance=0 seq_len=17 compiled=False elapsed=0.3370s loss=16.0364 peak_host=6.3GB
+train hop_count=5 distance=0 seq_len=17 compiled=False elapsed=0.3352s loss=15.8479 peak_host=6.3GB
+train hop_count=5 distance=0 seq_len=17 compiled=False elapsed=0.3349s loss=15.6980 peak_host=6.3GB
+train hop_count=5 distance=3 seq_len=35 compiled=False elapsed=0.4961s loss=14.6155 peak_host=6.3GB
+train hop_count=5 distance=3 seq_len=35 compiled=False elapsed=0.4961s loss=14.4419 peak_host=6.3GB
+train hop_count=5 distance=3 seq_len=35 compiled=False elapsed=0.4937s loss=14.4577 peak_host=6.3GB
+train hop_count=5 distance=3 seq_len=35 compiled=False elapsed=0.4934s loss=14.3709 peak_host=6.3GB
+train hop_count=5 distance=9 seq_len=71 compiled=False elapsed=0.8457s loss=12.5157 peak_host=6.3GB
+train hop_count=5 distance=9 seq_len=71 compiled=False elapsed=0.8526s loss=12.2831 peak_host=6.3GB
+train hop_count=5 distance=9 seq_len=71 compiled=False elapsed=0.8429s loss=11.9749 peak_host=6.3GB
+train hop_count=5 distance=9 seq_len=71 compiled=False elapsed=0.8509s loss=11.8103 peak_host=6.3GB
+train hop_count=5 distance=21 seq_len=143 compiled=False elapsed=1.6724s loss=10.5531 peak_host=6.3GB
+train hop_count=5 distance=21 seq_len=143 compiled=False elapsed=1.6750s loss=10.4540 peak_host=6.3GB
+train hop_count=5 distance=21 seq_len=143 compiled=False elapsed=1.6689s loss=10.5313 peak_host=6.3GB
+train hop_count=5 distance=21 seq_len=143 compiled=False elapsed=1.6640s loss=10.5143 peak_host=6.3GB
+train hop_count=5 distance=45 seq_len=287 compiled=True elapsed=26.6914s loss=9.9051 peak_host=6.4GB
+train hop_count=5 distance=45 seq_len=287 compiled=False elapsed=3.4186s loss=9.8168 peak_host=6.4GB
+train hop_count=5 distance=45 seq_len=287 compiled=False elapsed=3.4234s loss=9.8587 peak_host=6.4GB
+train hop_count=5 distance=45 seq_len=287 compiled=False elapsed=3.4175s loss=9.8893 peak_host=6.4GB
+
+=== phase 2: evaluate_grid, 512 examples/cell, longest sequence first ===
+eval1 hop_count=5 distance=45 seq_len=287 elapsed=68.2435s accuracy=0.0000 peak_host=6.4GB
+eval1 hop_count=4 distance=45 seq_len=239 elapsed=55.7775s accuracy=0.0000 peak_host=6.5GB
+eval1 hop_count=3 distance=45 seq_len=191 elapsed=46.6291s accuracy=0.0000 peak_host=6.5GB
+eval1 hop_count=2 distance=45 seq_len=143 elapsed=35.2660s accuracy=0.0000 peak_host=6.6GB
+eval1 hop_count=5 distance=21 seq_len=143 elapsed=1.8878s accuracy=0.0000 peak_host=6.6GB
+eval1 hop_count=4 distance=21 seq_len=119 elapsed=29.3600s accuracy=0.0000 peak_host=6.7GB
+eval1 hop_count=1 distance=45 seq_len=95 elapsed=24.0860s accuracy=0.0000 peak_host=6.7GB
+eval1 hop_count=3 distance=21 seq_len=95 elapsed=1.1897s accuracy=0.0000 peak_host=6.7GB
+eval1 hop_count=2 distance=21 seq_len=71 elapsed=18.9168s accuracy=0.0000 peak_host=6.8GB
+eval1 hop_count=5 distance=9 seq_len=71 elapsed=0.8574s accuracy=0.0000 peak_host=6.8GB
+eval1 hop_count=4 distance=9 seq_len=59 elapsed=16.9771s accuracy=0.0000 peak_host=6.9GB
+eval1 hop_count=1 distance=21 seq_len=47 elapsed=13.9289s accuracy=0.0000 peak_host=6.9GB
+eval1 hop_count=3 distance=9 seq_len=47 elapsed=0.5591s accuracy=0.0000 peak_host=6.9GB
+eval1 hop_count=2 distance=9 seq_len=35 elapsed=12.7877s accuracy=0.0000 peak_host=7.0GB
+eval1 hop_count=5 distance=3 seq_len=35 elapsed=0.4149s accuracy=0.0000 peak_host=7.0GB
+eval1 hop_count=4 distance=3 seq_len=29 elapsed=11.1984s accuracy=0.0000 peak_host=7.0GB
+eval1 hop_count=1 distance=9 seq_len=23 elapsed=9.7438s accuracy=0.0000 peak_host=7.1GB
+eval1 hop_count=3 distance=3 seq_len=23 elapsed=0.2701s accuracy=0.0000 peak_host=7.1GB
+eval1 hop_count=2 distance=3 seq_len=17 elapsed=8.4135s accuracy=0.0000 peak_host=7.2GB
+eval1 hop_count=5 distance=0 seq_len=17 elapsed=0.1909s accuracy=0.0000 peak_host=7.2GB
+eval1 hop_count=4 distance=0 seq_len=14 elapsed=7.5899s accuracy=0.0000 peak_host=7.2GB
+eval1 hop_count=1 distance=3 seq_len=11 elapsed=6.1426s accuracy=0.0000 peak_host=7.3GB
+eval1 hop_count=3 distance=0 seq_len=11 elapsed=0.1544s accuracy=0.0000 peak_host=7.3GB
+eval1 hop_count=2 distance=0 seq_len=8 elapsed=5.9057s accuracy=0.0000 peak_host=7.3GB
+eval1 hop_count=1 distance=0 seq_len=5 elapsed=5.8211s accuracy=0.0000 peak_host=7.4GB
+eval pass 1 total: 382.3s
+eval2 hop_count=5 distance=45 seq_len=287 elapsed=4.5836s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=4 distance=45 seq_len=239 elapsed=3.5760s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=3 distance=45 seq_len=191 elapsed=2.6729s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=2 distance=45 seq_len=143 elapsed=1.8760s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=5 distance=21 seq_len=143 elapsed=1.8878s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=4 distance=21 seq_len=119 elapsed=1.5205s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=1 distance=45 seq_len=95 elapsed=1.1813s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=3 distance=21 seq_len=95 elapsed=1.1844s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=2 distance=21 seq_len=71 elapsed=0.8532s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=5 distance=9 seq_len=71 elapsed=0.8574s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=4 distance=9 seq_len=59 elapsed=0.7269s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=1 distance=21 seq_len=47 elapsed=0.5725s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=3 distance=9 seq_len=47 elapsed=0.5810s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=2 distance=9 seq_len=35 elapsed=0.4233s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=5 distance=3 seq_len=35 elapsed=0.4355s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=4 distance=3 seq_len=29 elapsed=0.3625s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=1 distance=9 seq_len=23 elapsed=0.2866s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=3 distance=3 seq_len=23 elapsed=0.2896s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=2 distance=3 seq_len=17 elapsed=0.2199s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=5 distance=0 seq_len=17 elapsed=0.2118s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=4 distance=0 seq_len=14 elapsed=0.1771s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=1 distance=3 seq_len=11 elapsed=0.1767s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=3 distance=0 seq_len=11 elapsed=0.1564s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=2 distance=0 seq_len=8 elapsed=0.1207s accuracy=0.0000 peak_host=7.4GB
+eval2 hop_count=1 distance=0 seq_len=5 elapsed=0.1066s accuracy=0.0000 peak_host=7.4GB
+eval pass 2 total: 25.0s
+
+wrote per-step log to /home/kalin/coding/multihop-kda-experiment/timing_run_baseline.csv
+
+=== per-cell steady-state (compiled steps excluded) ===
+(1, 0): seq_len=5 mean=0.2473s n=3
+(1, 3): seq_len=11 mean=0.2798s n=3
+(1, 9): seq_len=23 mean=0.3814s n=3
+(1, 21): seq_len=47 mean=0.6060s n=3
+(1, 45): seq_len=95 mean=1.0882s n=3
+(2, 0): seq_len=8 mean=0.2694s n=3
+(2, 3): seq_len=17 mean=0.3356s n=3
+(2, 9): seq_len=35 mean=0.4938s n=3
+(2, 21): seq_len=71 mean=0.8495s n=3
+(2, 45): seq_len=143 mean=1.6674s n=3
+(3, 0): seq_len=11 mean=0.3157s n=4
+(3, 3): seq_len=23 mean=0.3850s n=4
+(3, 9): seq_len=47 mean=0.6078s n=4
+(3, 21): seq_len=95 mean=1.0880s n=4
+(3, 45): seq_len=191 mean=2.3615s n=3
+(4, 0): seq_len=14 mean=0.3115s n=3
+(4, 3): seq_len=29 mean=0.4320s n=3
+(4, 9): seq_len=59 mean=0.7078s n=3
+(4, 21): seq_len=119 mean=1.3538s n=3
+(4, 45): seq_len=239 mean=2.7933s n=3
+(5, 0): seq_len=17 mean=0.3376s n=4
+(5, 3): seq_len=35 mean=0.4948s n=4
+(5, 9): seq_len=71 mean=0.8480s n=4
+(5, 21): seq_len=143 mean=1.6701s n=4
+(5, 45): seq_len=287 mean=3.4198s n=3
+
+=== baseline: 20000-step budget ===
+uniform-cell-weighted per-step: 0.9338s
+train steady-state:        5.19h
+train compile (17 shapes):   0.09h (312s, one-time)
+eval (40 grids):          0.38h (first 382s incl. compile, steady 25s each)
+TOTAL:                     5.65h (excludes checkpoint writes, ~20 x a few seconds)
+peak host memory: 7.4GB

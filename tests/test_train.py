@@ -21,12 +21,15 @@ from multihop.train import (
     TrainConfig,
     build_optimizer_tx,
     compute_loss,
+    latest_checkpoint,
     load_checkpoint,
     load_model_checkpoint,
+    restore_rngs,
     sample_cell,
     sample_training_batch,
     sample_training_microbatches,
     save_checkpoint,
+    train,
     train_step,
     train_step_accum,
 )
@@ -347,3 +350,163 @@ def test_train_step_accum_matches_a_true_batch_step_of_the_same_data() -> None:
         # mask real bugs (e.g. summing instead of averaging gradients, or an
         # off-by-one dropping a micro-batch) as float noise.
         np.testing.assert_allclose(np.asarray(accum_leaf), np.asarray(true_leaf), rtol=1e-5, atol=1e-6)
+
+
+RESUME_TEST_TOTAL_STEPS = 6
+
+
+def _resume_test_config(stop_after: int = RESUME_TEST_TOTAL_STEPS) -> TrainConfig:
+    """Config for the resume tests, optionally stopping early to simulate a kill.
+
+    `stop_after` changes only the loop bound. The optimizer's schedule is
+    always built from `RESUME_TEST_TOTAL_STEPS`, because a killed run does not
+    get *reconfigured* -- it was always a 6-step run, it just stopped at 4.
+    Building the interrupted run's optimizer from `total_steps=4` instead
+    would give it a different `optax.warmup_cosine_decay_schedule`
+    (`decay_steps` is `total_steps`), so its steps would legitimately diverge
+    from the reference run's for reasons that have nothing to do with resume.
+    """
+    return TrainConfig(
+        batch_size=2,
+        grad_accum_steps=1,
+        total_steps=stop_after,
+        warmup_steps=1,
+        eval_every=2,
+        checkpoint_every=2,
+    )
+
+
+def _run_training(
+    checkpoint_dir: Path,
+    stop_after: int = RESUME_TEST_TOTAL_STEPS,
+    start_step: int = 0,
+    model: FullAttentionBaseline | None = None,
+    optimizer: nnx.Optimizer[FullAttentionBaseline] | None = None,
+    rngs: dict[str, np.random.Generator] | None = None,
+) -> tuple[FullAttentionBaseline, list[tuple[int, float]], list[float]]:
+    """Drive `train()` with an eval_fn that consumes the eval rng, as the real runs do."""
+    train_config = _resume_test_config(stop_after)
+    if model is None:
+        model = make_model()
+        # Schedule always built from the full run length -- see _resume_test_config.
+        optimizer = nnx.Optimizer(
+            model, build_optimizer_tx(_resume_test_config()), wrt=nnx.Param
+        )
+    assert optimizer is not None
+    if rngs is None:
+        rngs = {"train": np.random.default_rng(0), "eval": np.random.default_rng(1)}
+
+    eval_draws: list[float] = []
+
+    def eval_fn(_m: FullAttentionBaseline) -> dict[tuple[int, int], float]:
+        # Stands in for evaluate_grid: the point is that it *consumes* the
+        # eval generator, so an unrestored one yields a different draw here.
+        eval_draws.append(float(rngs["eval"].random()))
+        return {(1, 0): 0.0}
+
+    history = train(
+        model,
+        optimizer,
+        train_config,
+        ENTITY_VOCAB_SIZE,
+        rngs["train"],
+        checkpoint_dir,
+        eval_fn=eval_fn,
+        start_step=start_step,
+        checkpoint_rngs=rngs,
+    )
+    return model, history.loss, eval_draws
+
+
+def test_resumed_run_reproduces_an_uninterrupted_run_exactly() -> None:
+    """The load-bearing resume test: identical params, losses, and eval draws.
+
+    A resume that merely *runs* is not enough. `train()` draws every Grid Cell
+    and every example from one generator, and the eval harness threads another
+    across all its passes, so a resume that restarts either produces a
+    different data stream -- and, because the eval generator's position
+    determines which examples the *final* Degradation Grid is scored on, a
+    grid that is silently not comparable across Variants. This asserts the
+    resumed run is indistinguishable from the uninterrupted one, not merely
+    similar.
+    """
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        uninterrupted_dir = Path(tmp_dir) / "uninterrupted"
+        reference_model, reference_loss, reference_evals = _run_training(uninterrupted_dir)
+        reference_params = jax.tree.leaves(nnx.to_pure_dict(nnx.state(reference_model)))
+
+        # Now the same run, killed after step 4 and resumed from its checkpoint.
+        resumed_dir = Path(tmp_dir) / "resumed"
+        _partial_model, partial_loss, partial_evals = _run_training(resumed_dir, stop_after=4)
+
+        checkpoint = latest_checkpoint(resumed_dir)
+        assert checkpoint is not None and checkpoint.name == "step_4"
+
+        fresh_model = make_model()
+        fresh_optimizer = nnx.Optimizer(
+            fresh_model, build_optimizer_tx(_resume_test_config()), wrt=nnx.Param
+        )
+        restored_step = load_checkpoint(fresh_model, fresh_optimizer, checkpoint)
+        assert restored_step == 4
+
+        fresh_rngs = {"train": np.random.default_rng(999), "eval": np.random.default_rng(999)}
+        assert restore_rngs(checkpoint, fresh_rngs) is True
+
+        resumed_model, resumed_loss, resumed_evals = _run_training(
+            resumed_dir,
+            start_step=4,
+            model=fresh_model,
+            optimizer=fresh_optimizer,
+            rngs=fresh_rngs,
+        )
+
+    assert [step for step, _ in resumed_loss] == [5, 6]
+    # Steps 5-6 of the resumed run match steps 5-6 of the uninterrupted one.
+    for (_, resumed), (_, reference) in zip(resumed_loss, reference_loss[4:], strict=True):
+        assert resumed == pytest.approx(reference, rel=1e-6, abs=1e-6)
+
+    # The eval generator continued rather than restarting: the resumed run's
+    # eval draw matches the uninterrupted run's *third* draw, not its first.
+    assert len(partial_evals) == 2 and len(resumed_evals) == 1
+    assert resumed_evals[0] == pytest.approx(reference_evals[2])
+    assert resumed_evals[0] != pytest.approx(reference_evals[0])
+
+    resumed_params = jax.tree.leaves(nnx.to_pure_dict(nnx.state(resumed_model)))
+    assert len(resumed_params) == len(reference_params)
+    for resumed_leaf, reference_leaf in zip(resumed_params, reference_params, strict=True):
+        np.testing.assert_allclose(
+            np.asarray(resumed_leaf), np.asarray(reference_leaf), rtol=1e-6, atol=1e-6
+        )
+
+
+def test_restore_rngs_reports_absence_on_a_checkpoint_saved_without_them() -> None:
+    """A pre-resume checkpoint must be detectable, not silently resumed from."""
+    model = make_model()
+    train_config = TrainConfig(batch_size=2, grad_accum_steps=1, total_steps=2, warmup_steps=1)
+    optimizer = nnx.Optimizer(model, build_optimizer_tx(train_config), wrt=nnx.Param)
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        path = Path(tmp_dir) / "step_1"
+        save_checkpoint(model, optimizer, step=1, path=path)  # no rngs= argument
+        assert restore_rngs(path, {"train": np.random.default_rng(0)}) is False
+
+        save_checkpoint(model, optimizer, step=1, path=path, rngs={"train": np.random.default_rng(0)})
+        with pytest.raises(ValueError, match="no saved state for rng"):
+            restore_rngs(path, {"train": np.random.default_rng(0), "eval": np.random.default_rng(1)})
+
+
+def test_latest_checkpoint_ignores_a_half_written_step() -> None:
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        directory = Path(tmp_dir)
+        assert latest_checkpoint(directory) is None
+
+        model = make_model()
+        train_config = TrainConfig(batch_size=2, grad_accum_steps=1, total_steps=2, warmup_steps=1)
+        optimizer = nnx.Optimizer(model, build_optimizer_tx(train_config), wrt=nnx.Param)
+        save_checkpoint(model, optimizer, step=1000, path=directory / "step_1000")
+        save_checkpoint(model, optimizer, step=2000, path=directory / "step_2000")
+        assert latest_checkpoint(directory) == directory / "step_2000"
+
+        # Simulate a run killed while writing step_2000's optimizer file.
+        (directory / "step_2000.optimizer.safetensors").unlink()
+        assert latest_checkpoint(directory) == directory / "step_1000"

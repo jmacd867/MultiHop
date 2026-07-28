@@ -16,6 +16,7 @@ the same `required_sequence_length` -- while still mixing across the full
 grid over the course of training, which is what ADR 0003 actually requires.
 """
 
+import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -323,10 +324,42 @@ def _checkpoint_paths(path: Path) -> tuple[Path, Path]:
     return path.parent / f"{path.name}.model.safetensors", path.parent / f"{path.name}.optimizer.safetensors"
 
 
-def save_checkpoint(model: ModelT, optimizer: nnx.Optimizer[ModelT], step: int, path: Path) -> None:
+def save_checkpoint(
+    model: ModelT,
+    optimizer: nnx.Optimizer[ModelT],
+    step: int,
+    path: Path,
+    rngs: Mapping[str, np.random.Generator] | None = None,
+) -> None:
+    """Write the model and optimizer files, plus enough state to resume exactly.
+
+    `rngs` is what makes resumption *exact* rather than merely possible, and
+    it is not optional in practice for this experiment. `train()` draws every
+    (hop_count, distance) cell and every generated example from one
+    `np.random.Generator`, and the eval harness draws its per-cell examples
+    from another. Restarting either from its seed after an interruption would
+    give the resumed run a different data stream than an uninterrupted one --
+    a different sequence of Grid Cells to train on, and (because the eval
+    generator is threaded across all 40 eval passes) a different set of
+    examples in the *final* Degradation Grid. That last one silently breaks
+    the cross-variant comparison this project exists to make: CONTEXT.md
+    defines a Variant as differing from the others only in its sequence-mixing
+    mechanism, and ADR 0008 makes identical per-cell eval examples the
+    mechanism protecting that. A resume without RNG state would produce a
+    grid that looks fine and is not comparable.
+
+    Generator state (`bit_generator.state`) is a plain JSON-serializable dict,
+    so it rides in the safetensors metadata map ADR 0007 already established
+    for `step` -- no sidecar file, and written to both files for the same
+    reason `step` is.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
     model_path, optimizer_path = _checkpoint_paths(path)
     metadata = {"step": str(step)}
+    if rngs is not None:
+        metadata["rng_states"] = json.dumps(
+            {name: generator.bit_generator.state for name, generator in rngs.items()}
+        )
 
     model_state = _flatten_state(nnx.to_pure_dict(nnx.state(model)))
     save_file(model_state, model_path, metadata=metadata)
@@ -347,6 +380,53 @@ def load_checkpoint(model: ModelT, optimizer: nnx.Optimizer[ModelT], path: Path)
     with safe_open(optimizer_path, framework="numpy") as f:
         metadata = f.metadata() or {}
     return int(metadata["step"])
+
+
+def restore_rngs(path: Path, rngs: Mapping[str, np.random.Generator]) -> bool:
+    """Restore saved generator states in place, returning whether any were found.
+
+    Deliberately mutates the caller's generators rather than returning new
+    ones: `train()` and the eval closure both hold references to specific
+    Generator objects, so handing back fresh instances would leave the
+    originals -- the ones actually being drawn from -- untouched.
+
+    Returns False for a checkpoint written before `save_checkpoint` recorded
+    RNG state, so a caller can refuse to resume rather than silently continue
+    with a divergent data stream (see `save_checkpoint` on why that matters).
+    """
+    _model_path, optimizer_path = _checkpoint_paths(path)
+    with safe_open(optimizer_path, framework="numpy") as f:
+        metadata = f.metadata() or {}
+    raw = metadata.get("rng_states")
+    if raw is None:
+        return False
+
+    saved = json.loads(raw)
+    missing = set(rngs) - set(saved)
+    if missing:
+        raise ValueError(
+            f"checkpoint {path.name} has no saved state for rng(s) {sorted(missing)} "
+            f"-- resuming would give them a different data stream than an uninterrupted run"
+        )
+    for name, generator in rngs.items():
+        generator.bit_generator.state = saved[name]
+    return True
+
+
+def latest_checkpoint(checkpoint_dir: Path) -> Path | None:
+    """Highest-step checkpoint base path in `checkpoint_dir`, or None if there are none.
+
+    Only counts steps whose *both* files exist -- a run killed midway through
+    writing a checkpoint pair would otherwise be resumed from a half-written
+    step.
+    """
+    if not checkpoint_dir.is_dir():
+        return None
+    bases = {p.parent / p.name.split(".")[0] for p in checkpoint_dir.glob("step_*.safetensors")}
+    complete = [b for b in bases if all(p.exists() for p in _checkpoint_paths(b))]
+    if not complete:
+        return None
+    return max(complete, key=lambda p: int(p.name.removeprefix("step_")))
 
 
 def load_model_checkpoint(model: ModelT, path: Path) -> int:
@@ -386,7 +466,25 @@ def train(
     rng: np.random.Generator,
     checkpoint_dir: Path,
     eval_fn: "EvalFn[ModelT] | None" = None,
+    start_step: int = 0,
+    checkpoint_rngs: Mapping[str, np.random.Generator] | None = None,
 ) -> TrainingHistory:
+    """Train from `start_step + 1` to `train_config.total_steps`.
+
+    `start_step` and `checkpoint_rngs` exist together and should be used
+    together: resuming a run means continuing the *same* data stream, which
+    requires the caller to have restored every generator's state (via
+    `restore_rngs`) before calling. `checkpoint_rngs` is the set of generators
+    written into each checkpoint so that a later resume can do so -- pass the
+    same mapping on the original run and on the resumed one. See
+    `save_checkpoint` for why an unrestored generator silently breaks
+    cross-variant comparability rather than failing loudly.
+
+    Note `start_step` shifts only which steps execute, not the optimizer's LR
+    schedule: that is driven by optax's own step count, which rides in the
+    restored optimizer state, so a resumed run continues the warmup/cosine
+    curve where it left off rather than restarting it.
+    """
     expected_vocab_size = total_vocab_size(vocab_size)
     if model.config.vocab_size != expected_vocab_size:
         raise ValueError(
@@ -397,7 +495,7 @@ def train(
 
     history = TrainingHistory()
 
-    for step in range(1, train_config.total_steps + 1):
+    for step in range(start_step + 1, train_config.total_steps + 1):
         micro_batches, _hop_count, _distance = sample_training_microbatches(
             rng,
             train_config.micro_batch_size,
@@ -419,6 +517,8 @@ def train(
             print(f"step {step}: eval mean accuracy={mean_accuracy:.4f}")
 
         if step % train_config.checkpoint_every == 0:
-            save_checkpoint(model, optimizer, step, checkpoint_dir / f"step_{step}")
+            save_checkpoint(
+                model, optimizer, step, checkpoint_dir / f"step_{step}", rngs=checkpoint_rngs
+            )
 
     return history
