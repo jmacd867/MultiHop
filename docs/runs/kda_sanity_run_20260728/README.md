@@ -60,7 +60,11 @@ by scanning instead of unrolling. Neither was a bug in the KDA math.
 
 ## Files
 
-- `sanity_run_kda.log` -- full stdout, including the XLA slow-compile warnings.
+- `sanity_run_kda.log` -- full stdout. (This line previously claimed the log
+  included the XLA slow-compile warnings; it does not. The log is 48 lines of
+  losses and the two eval grids, with no warnings of any kind -- the
+  slow-compile alarms described in ADR 0009/0010 belong to the *earlier, killed*
+  attempts, not to this successful run, and were never captured to a file.)
 
 ## Checkpoint disposition
 

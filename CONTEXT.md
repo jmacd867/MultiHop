@@ -30,3 +30,15 @@ The uniform gap (applied identically between every consecutive pair of Chain Fac
 
 **Sequence Length**:
 The total token length of one generated example. An independently controllable target; the generator raises an error rather than silently relaxing Hop Count, Distance, or Distractor count when the combination can't fit.
+
+**Variant**:
+One of the exactly three architectures under comparison — full attention, pure KDA, and hybrid. All three share one identical depth, width, and head count; a Variant differs from the others *only* in its sequence-mixing mechanism (and in the positional encoding that mechanism dictates). Anything else that differs between Variants is a confound, not a Variant difference.
+_Avoid_: Model, architecture (both are broader — a Variant is specifically one arm of this comparison).
+
+**Grid Cell**:
+One (Hop Count, Distance) combination — 25 in total, from 5 Hop Counts × 5 Distances. The unit a Variant is scored on.
+_Avoid_: Configuration, setting (too vague — those also describe hyperparameters, which a Grid Cell is not).
+
+**Degradation Grid**:
+The experiment's output: one accuracy figure per Grid Cell for one Variant. Comparing Degradation Grids across Variants is the point of the study. A Degradation Grid measures capability on difficulty levels the Variant was trained on, not extrapolation to unseen ones.
+_Avoid_: Results, eval grid (the latter names the sweep that produces the numbers, not the numbers themselves).

@@ -1,0 +1,77 @@
+step 1: loss=18.3598 elapsed=23.0s
+step 50: loss=14.0745 elapsed=42.5s
+step 100: loss=13.7614 elapsed=62.4s
+step 150: loss=13.4655 elapsed=82.3s
+step 200: loss=12.7716 elapsed=102.2s
+step 250: loss=11.2727 elapsed=122.1s
+step 250: PROBE accuracy=0.3184 distinct_predictions=420/512
+step 300: loss=8.8212 elapsed=151.8s
+step 350: loss=6.3277 elapsed=171.6s
+step 400: loss=4.0521 elapsed=191.6s
+step 450: loss=2.9557 elapsed=211.4s
+step 500: loss=2.5063 elapsed=231.3s
+step 500: PROBE accuracy=0.9980 distinct_predictions=496/512
+step 550: loss=2.4397 elapsed=252.8s
+step 600: loss=2.3949 elapsed=272.7s
+step 650: loss=2.3595 elapsed=292.6s
+step 700: loss=2.3228 elapsed=312.5s
+step 750: loss=2.3250 elapsed=332.5s
+step 750: PROBE accuracy=1.0000 distinct_predictions=496/512
+step 800: loss=2.3095 elapsed=354.0s
+step 850: loss=2.3184 elapsed=374.0s
+step 900: loss=2.3205 elapsed=393.9s
+step 950: loss=2.3027 elapsed=413.8s
+step 1000: loss=2.2931 elapsed=433.7s
+step 1000: PROBE accuracy=1.0000 distinct_predictions=496/512
+step 1050: loss=2.2952 elapsed=455.4s
+step 1100: loss=2.2745 elapsed=475.4s
+step 1150: loss=2.2805 elapsed=495.3s
+step 1200: loss=2.2786 elapsed=515.2s
+step 1250: loss=2.2775 elapsed=535.1s
+step 1250: PROBE accuracy=1.0000 distinct_predictions=496/512
+step 1300: loss=2.2595 elapsed=556.6s
+step 1350: loss=2.2574 elapsed=576.5s
+step 1400: loss=2.2676 elapsed=596.4s
+step 1450: loss=2.2710 elapsed=616.3s
+step 1500: loss=2.2689 elapsed=636.2s
+step 1500: PROBE accuracy=1.0000 distinct_predictions=496/512
+step 1550: loss=2.2648 elapsed=657.7s
+step 1600: loss=2.2636 elapsed=677.6s
+step 1650: loss=2.2748 elapsed=697.5s
+step 1700: loss=2.2602 elapsed=717.5s
+step 1750: loss=2.2782 elapsed=737.4s
+step 1750: PROBE accuracy=0.9980 distinct_predictions=496/512
+step 1800: loss=2.2523 elapsed=758.9s
+step 1850: loss=2.2642 elapsed=778.8s
+step 1900: loss=2.2588 elapsed=798.8s
+step 1950: loss=2.2635 elapsed=818.7s
+step 2000: loss=2.2605 elapsed=838.6s
+step 2000: PROBE accuracy=1.0000 distinct_predictions=496/512
+step 2050: loss=2.2574 elapsed=860.2s
+step 2100: loss=2.2536 elapsed=880.1s
+step 2150: loss=2.2541 elapsed=900.0s
+step 2200: loss=2.2532 elapsed=920.0s
+step 2250: loss=2.2566 elapsed=940.0s
+step 2250: PROBE accuracy=1.0000 distinct_predictions=496/512
+step 2300: loss=2.2505 elapsed=961.5s
+step 2350: loss=2.2547 elapsed=981.4s
+step 2400: loss=2.2549 elapsed=1001.3s
+step 2450: loss=2.2485 elapsed=1021.2s
+step 2500: loss=2.2627 elapsed=1041.2s
+step 2500: PROBE accuracy=1.0000 distinct_predictions=496/512
+step 2550: loss=2.2493 elapsed=1062.8s
+step 2600: loss=2.2614 elapsed=1082.6s
+step 2650: loss=2.2478 elapsed=1102.5s
+step 2700: loss=2.2561 elapsed=1122.5s
+step 2750: loss=2.2496 elapsed=1142.4s
+step 2750: PROBE accuracy=1.0000 distinct_predictions=496/512
+step 2800: loss=2.2506 elapsed=1163.9s
+step 2850: loss=2.2504 elapsed=1183.9s
+step 2900: loss=2.2491 elapsed=1203.8s
+step 2950: loss=2.2548 elapsed=1223.7s
+step 3000: loss=2.2475 elapsed=1243.7s
+step 3000: PROBE accuracy=1.0000 distinct_predictions=496/512
+=== probe complete in 20.8 min ===
+final accuracy at (hop_count=1, distance=0): 1.0000
+distinct predicted tokens: 496/512
+VERDICT: PASS -- accuracy left zero, hybrid learns at full scale

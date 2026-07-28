@@ -71,7 +71,12 @@ class CausalSelfAttention(nnx.Module):
         )
 
     def __call__(
-        self, x: Array, cos: Array, sin: Array, *, capture_attention: bool = False
+        self,
+        x: Array,
+        cos: Array | None = None,
+        sin: Array | None = None,
+        *,
+        capture_attention: bool = False,
     ) -> Array:
         batch, seq_len, _ = x.shape
         n_heads = self.config.n_heads
@@ -81,7 +86,17 @@ class CausalSelfAttention(nnx.Module):
         k = self.k_proj(x).reshape(batch, seq_len, n_heads, head_dim)
         v = self.v_proj(x).reshape(batch, seq_len, n_heads, head_dim)
 
+        # cos/sin are optional because a NoPE variant has no rotary tables to
+        # pass at all (ADR 0001's rule is per-variant: the hybrid's
+        # full-attention layers run NoPE, same as its KDA layers). Erroring on
+        # the rope-without-tables case keeps that from degrading silently into
+        # an unrotated -- i.e. positionless -- attention layer.
         if self.config.positional_encoding == "rope":
+            if cos is None or sin is None:
+                raise ValueError(
+                    "positional_encoding='rope' requires cos and sin, got None -- "
+                    "a RoPE layer cannot run without rotary tables"
+                )
             q = apply_rope(q, cos, sin)
             k = apply_rope(k, cos, sin)
 
@@ -116,7 +131,12 @@ class TransformerBlock(nnx.Module):
         self.ffn = SwiGLU(config, rngs=rngs)
 
     def __call__(
-        self, x: Array, cos: Array, sin: Array, *, capture_attention: bool = False
+        self,
+        x: Array,
+        cos: Array | None = None,
+        sin: Array | None = None,
+        *,
+        capture_attention: bool = False,
     ) -> Array:
         x = x + self.attn(self.attn_norm(x), cos, sin, capture_attention=capture_attention)
         x = x + self.ffn(self.ffn_norm(x))

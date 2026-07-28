@@ -1,4 +1,4 @@
-"""Training loop for the full-attention baseline (and, eventually, the KDA/hybrid variants).
+"""Training loop shared by all three Variants (full attention, pure KDA, hybrid).
 
 Everything here is step-indexed, not epoch-indexed: examples are generated
 on-the-fly per step (no fixed training corpus, no epoch concept), so LR
@@ -41,7 +41,7 @@ from multihop.models.config import ModelConfig
 
 
 class MultihopModel(Protocol):
-    """Structural type every model variant (baseline, KDA, eventually hybrid) satisfies.
+    """Structural type every Variant (full attention, pure KDA, hybrid) satisfies.
 
     Everything in this module is written against this Protocol rather than a
     concrete model class so `train_step_accum`, `compute_loss`, checkpointing, etc.

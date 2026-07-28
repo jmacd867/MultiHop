@@ -21,32 +21,65 @@ cell (hop_count=1, distance=0), not the full `train()` mixed-grid loop --
 `train()` samples uniformly across all 25 (hop_count, distance) cells,
 which would spend most of a short step budget on much harder cells than
 this test needs to make its point quickly and reliably.
+
+Run for every Variant, not just the baseline. The bug this guards against
+lived in the interaction between the generator, tied embeddings, and
+gradient descent -- none of which is variant-specific -- so any variant
+can reintroduce it, and until now only the full-attention one was covered.
+`n_layers=4` (rather than the 2 this test originally used) is the smallest
+depth at which the hybrid actually contains both of its block types under
+ADR 0011's schedule; it is applied uniformly so the three variants stay
+comparable.
 """
+
+from typing import Protocol
 
 import jax.numpy as jnp
 import numpy as np
+import pytest
 from flax import nnx
 
 from multihop.data.generator import generate_batch, total_vocab_size
 from multihop.models.baseline import FullAttentionBaseline
 from multihop.models.config import ModelConfig
-from multihop.train import TrainConfig, build_optimizer_tx, train_step
+from multihop.models.hybrid import HybridModel
+from multihop.models.pure_kda import PureKDAModel
+from multihop.train import MultihopModel, TrainConfig, build_optimizer_tx, train_step
 
 ENTITY_VOCAB_SIZE = 200
 HOP_COUNT = 1
 DISTANCE = 0
 
 
-def test_predictions_vary_with_context_after_brief_training() -> None:
+class VariantFactory(Protocol):
+    def __call__(self, config: ModelConfig, *, rngs: nnx.Rngs) -> MultihopModel: ...
+
+
+VARIANTS: list[tuple[str, VariantFactory, str]] = [
+    ("full_attention", FullAttentionBaseline, "rope"),
+    ("pure_kda", PureKDAModel, "none"),
+    ("hybrid", HybridModel, "none"),
+]
+
+
+@pytest.mark.parametrize(
+    ("variant_name", "build_variant", "positional_encoding"),
+    VARIANTS,
+    ids=[name for name, _, _ in VARIANTS],
+)
+def test_predictions_vary_with_context_after_brief_training(
+    variant_name: str, build_variant: VariantFactory, positional_encoding: str
+) -> None:
     model_config = ModelConfig(
         vocab_size=total_vocab_size(ENTITY_VOCAB_SIZE),
-        n_layers=2,
+        n_layers=4,
         embed_dim=32,
         n_heads=4,
         ffn_dim=64,
         max_seq_len=10,
+        positional_encoding=positional_encoding,  # type: ignore[arg-type]
     )
-    model = FullAttentionBaseline(model_config, rngs=nnx.Rngs(0))
+    model = build_variant(model_config, rngs=nnx.Rngs(0))
     train_config = TrainConfig(
         batch_size=32, grad_accum_steps=1, total_steps=800, warmup_steps=50, peak_lr=1e-3
     )
@@ -74,7 +107,9 @@ def test_predictions_vary_with_context_after_brief_training() -> None:
     predicted = jnp.argmax(query_logits, axis=-1)
 
     accuracy = float(jnp.mean(predicted == jnp.asarray(eval_answers)))
-    assert accuracy > 0.0, "accuracy should move off zero after real training on the shared pool"
+    assert accuracy > 0.0, (
+        f"{variant_name}: accuracy should move off zero after real training on the shared pool"
+    )
 
     unique_predictions = len(set(np.asarray(predicted).tolist()))
     # The original bug's signature: argmax collapsing to a small fixed set
@@ -82,7 +117,7 @@ def test_predictions_vary_with_context_after_brief_training() -> None:
     # Real context-dependent prediction should spread across many distinct
     # answer tokens given 64 examples with independently random chains.
     assert unique_predictions > 1, (
-        f"predicted only {unique_predictions} distinct token(s) across {n_examples} "
+        f"{variant_name}: predicted only {unique_predictions} distinct token(s) across {n_examples} "
         "independently-sampled examples -- this is the input-invariance signature "
         "of the train/eval-vocab memorization bug (ADR 0008), not genuine "
         "context-dependent chain resolution"
