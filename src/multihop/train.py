@@ -19,7 +19,7 @@ grid over the course of training, which is what ADR 0003 actually requires.
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol, TypeVar
 
 import jax
 import jax.numpy as jnp
@@ -37,7 +37,25 @@ from multihop.data.generator import (
     reference_distractor_count,
     total_vocab_size,
 )
-from multihop.models.baseline import FullAttentionBaseline
+from multihop.models.config import ModelConfig
+
+
+class MultihopModel(Protocol):
+    """Structural type every model variant (baseline, KDA, eventually hybrid) satisfies.
+
+    Everything in this module is written against this Protocol rather than a
+    concrete model class so `train_step_accum`, `compute_loss`, checkpointing, etc.
+    are genuinely shared across variants -- not re-implemented per variant, only
+    called with a different model instance. See the pure-KDA task's "reuse
+    train_step_accum, the shared generator, and the eval harness as-is".
+    """
+
+    config: ModelConfig
+
+    def __call__(self, token_ids: jnp.ndarray) -> jnp.ndarray: ...
+
+
+ModelT = TypeVar("ModelT", bound=MultihopModel)
 
 # Weight on the answer-position loss term relative to the mean shifted-position
 # loss (see compute_loss). 1.0: the single answer position is deliberately
@@ -158,7 +176,7 @@ def sample_training_microbatches(
 
 
 def compute_loss(
-    model: FullAttentionBaseline,
+    model: ModelT,
     tokens: jnp.ndarray,
     answers: jnp.ndarray,
     answer_loss_weight: float = ANSWER_LOSS_WEIGHT,
@@ -200,8 +218,8 @@ def compute_loss(
 
 @nnx.jit
 def train_step(
-    model: FullAttentionBaseline,
-    optimizer: nnx.Optimizer[FullAttentionBaseline],
+    model: ModelT,
+    optimizer: nnx.Optimizer[ModelT],
     tokens: jnp.ndarray,
     answers: jnp.ndarray,
 ) -> jnp.ndarray:
@@ -212,32 +230,62 @@ def train_step(
 
 @nnx.jit
 def train_step_accum(
-    model: FullAttentionBaseline,
-    optimizer: nnx.Optimizer[FullAttentionBaseline],
+    model: ModelT,
+    optimizer: nnx.Optimizer[ModelT],
     micro_batches: list[tuple[jnp.ndarray, jnp.ndarray]],
 ) -> jnp.ndarray:
     """Gradient-accumulated step: average gradients over `micro_batches`, then one optimizer update.
 
-    `micro_batches` is a static-length Python list (its length is
-    `grad_accum_steps`, fixed by TrainConfig), so this loop unrolls at trace
-    time into `len(micro_batches)` forward+backward passes -- see ADR 0006.
     Averaging (not summing) the per-microbatch gradients, each already a
     mean over its own examples via compute_loss, matches the gradient a
     single true batch_size=256 step would produce (all micro-batches are
     equal-sized), so the existing peak_lr/grad_clip/schedule hyperparameters
     -- chosen assuming batch=256 semantics -- don't need re-tuning.
-    """
-    total_loss = jnp.zeros(())
-    accumulated_grads = None
-    for tokens, answers in micro_batches:
-        loss, grads = nnx.value_and_grad(compute_loss)(model, tokens, answers)
-        total_loss += loss
-        if accumulated_grads is None:
-            accumulated_grads = grads
-        else:
-            accumulated_grads = jax.tree.map(jnp.add, accumulated_grads, grads)
 
+    The accumulation loop is a `jax.lax.scan` over the stacked micro-batches,
+    not the Python-unrolled loop ADR 0006 originally described. Unrolling
+    inlined `grad_accum_steps` copies of a full forward+backward pass into one
+    jaxpr, which the full-attention baseline could afford but the KDA variant
+    could not: its per-layer graph already contains a scanned matrix inversion
+    and WY-transform intermediates (ADR 0009), and 16-32 inlined copies of a
+    12-layer backward pass exhausted GB10's memory *during compilation*, before
+    any step could run. See ADR 0010. Scanning compiles the accumulation body
+    once regardless of `grad_accum_steps`, so compile cost no longer scales
+    with it.
+
+    `micro_batches` is a static-length Python list of identically-shaped
+    (tokens, answers) pairs -- guaranteed by `sample_training_microbatches`,
+    which draws every micro-batch from one (hop_count, distance) cell -- so
+    stacking them into leading-axis arrays for the scan is always well-defined.
+    """
     grad_accum_steps = len(micro_batches)
+    stacked_tokens = jnp.stack([tokens for tokens, _answers in micro_batches])
+    stacked_answers = jnp.stack([answers for _tokens, answers in micro_batches])
+
+    # lax.scan needs a pure function of arrays, so split the model into a static
+    # graphdef plus its differentiable params and re-merge inside the body. The
+    # graphdef is a trace-time constant, so this costs nothing at runtime.
+    graphdef, params, rest = nnx.split(model, nnx.Param, ...)  # type: ignore[misc]
+
+    def micro_batch_loss(
+        params_state: Any, tokens: jnp.ndarray, answers: jnp.ndarray
+    ) -> jnp.ndarray:
+        merged = nnx.merge(graphdef, params_state, rest)
+        return compute_loss(merged, tokens, answers)
+
+    def accumulate(
+        carry: tuple[Any, jnp.ndarray], batch: tuple[jnp.ndarray, jnp.ndarray]
+    ) -> tuple[tuple[Any, jnp.ndarray], None]:
+        accumulated_grads, total_loss = carry
+        tokens, answers = batch
+        loss, grads = jax.value_and_grad(micro_batch_loss)(params, tokens, answers)
+        return (jax.tree.map(jnp.add, accumulated_grads, grads), total_loss + loss), None
+
+    init_grads = jax.tree.map(jnp.zeros_like, params)
+    (accumulated_grads, total_loss), _ = jax.lax.scan(
+        accumulate, (init_grads, jnp.zeros(())), (stacked_tokens, stacked_answers)
+    )
+
     averaged_grads = jax.tree.map(lambda g: g / grad_accum_steps, accumulated_grads)
     optimizer.update(model, averaged_grads)
     return total_loss / grad_accum_steps
@@ -275,7 +323,7 @@ def _checkpoint_paths(path: Path) -> tuple[Path, Path]:
     return path.parent / f"{path.name}.model.safetensors", path.parent / f"{path.name}.optimizer.safetensors"
 
 
-def save_checkpoint(model: FullAttentionBaseline, optimizer: nnx.Optimizer[FullAttentionBaseline], step: int, path: Path) -> None:
+def save_checkpoint(model: ModelT, optimizer: nnx.Optimizer[ModelT], step: int, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     model_path, optimizer_path = _checkpoint_paths(path)
     metadata = {"step": str(step)}
@@ -287,7 +335,7 @@ def save_checkpoint(model: FullAttentionBaseline, optimizer: nnx.Optimizer[FullA
     save_file(optimizer_state, optimizer_path, metadata=metadata)
 
 
-def load_checkpoint(model: FullAttentionBaseline, optimizer: nnx.Optimizer[FullAttentionBaseline], path: Path) -> int:
+def load_checkpoint(model: ModelT, optimizer: nnx.Optimizer[ModelT], path: Path) -> int:
     model_path, optimizer_path = _checkpoint_paths(path)
 
     model_state = _unflatten_state(load_file(model_path))
@@ -301,7 +349,7 @@ def load_checkpoint(model: FullAttentionBaseline, optimizer: nnx.Optimizer[FullA
     return int(metadata["step"])
 
 
-def load_model_checkpoint(model: FullAttentionBaseline, path: Path) -> int:
+def load_model_checkpoint(model: ModelT, path: Path) -> int:
     """Load only the trained weights from a checkpoint, never touching the optimizer file.
 
     This is the ADR 0007 model-only path: eval, ADR 0005 attention capture,
@@ -319,7 +367,7 @@ def load_model_checkpoint(model: FullAttentionBaseline, path: Path) -> int:
     return int(metadata["step"])
 
 
-EvalFn = Callable[[FullAttentionBaseline], Mapping[tuple[int, int], float]]
+EvalFn = Callable[[ModelT], Mapping[tuple[int, int], float]]
 
 
 @dataclass
@@ -331,13 +379,13 @@ class TrainingHistory:
 
 
 def train(
-    model: FullAttentionBaseline,
-    optimizer: nnx.Optimizer[FullAttentionBaseline],
+    model: ModelT,
+    optimizer: nnx.Optimizer[ModelT],
     train_config: TrainConfig,
     vocab_size: int,
     rng: np.random.Generator,
     checkpoint_dir: Path,
-    eval_fn: EvalFn | None = None,
+    eval_fn: "EvalFn[ModelT] | None" = None,
 ) -> TrainingHistory:
     expected_vocab_size = total_vocab_size(vocab_size)
     if model.config.vocab_size != expected_vocab_size:
