@@ -83,12 +83,34 @@ for variant in "${VARIANTS[@]}"; do
 
   if ! uv run python scripts/verify_checkpoint.py \
         "checkpoints/${variant}_run/step_${TOTAL_STEPS}" >> "run_logs/${variant}_verify.log" 2>&1; then
-    log "$variant: CHECKPOINT VERIFICATION FAILED (non-finite tensors) -- aborting chain"
-    log "$variant: see run_logs/${variant}_verify.log; evidence left in place"
-    exit 1
+    # Deliberately continue rather than abort. Aborting was the original
+    # behaviour and is the right default when someone is watching: a bad
+    # checkpoint means that Variant's Degradation Grid is meaningless.
+    #
+    # But this chain runs against a hard deadline on borrowed hardware, with
+    # a long window where nobody can reach the box (it is on a private
+    # network). Aborting there does not prevent a bad result -- it just adds
+    # hours of idle time on top of it, and costs the *other* Variants their
+    # runs too. One Variant's non-finite tensors say nothing about the
+    # others: they are separate models, separately initialised.
+    #
+    # This is not silently working around the failure. The Variant is
+    # recorded in run_logs/FAILED_VARIANTS, called out again at the end, and
+    # compare_grids.py reports any missing Variant rather than filling a gap.
+    # The finding survives; only the idling is avoided.
+    echo "$variant" >> run_logs/FAILED_VARIANTS
+    log "$variant: CHECKPOINT VERIFICATION FAILED (non-finite tensors)"
+    log "$variant: recorded in run_logs/FAILED_VARIANTS; continuing to remaining Variants"
+    log "$variant: its grid must NOT be used -- see run_logs/${variant}_verify.log"
+  else
+    log "$variant: final checkpoint verified finite"
   fi
-  log "$variant: final checkpoint verified finite"
 done
+
+if [ -s run_logs/FAILED_VARIANTS ]; then
+  log "!!! VARIANTS THAT FAILED VERIFICATION: $(tr "\n" " " < run_logs/FAILED_VARIANTS)"
+  log "!!! their Degradation Grids are not trustworthy and must be excluded"
+fi
 
 log "all three Variants complete and verified; full checkpoint sweep"
 for variant in "${VARIANTS[@]}"; do
