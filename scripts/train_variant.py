@@ -158,8 +158,20 @@ def main(variant: str) -> None:
         # run is many hours, and an interrupted one should still leave every
         # grid it managed to produce. JSON keys must be strings, so cells are
         # serialized as "hop_count,distance".
+        #
+        # The step is computed here rather than only attached after train()
+        # returns. `train()` evaluates exactly when step % eval_every == 0, and
+        # start_step is always a checkpoint step (a multiple of
+        # checkpoint_every, itself a multiple of eval_every), so the nth eval
+        # of this invocation is at start_step + n * eval_every. Deriving it now
+        # keeps the JSON readable *during* a run -- which is how it is actually
+        # being read -- and means a resumed run's earlier grids are not left
+        # permanently unlabelled, since the post-run pass only labels the grids
+        # this invocation produced.
+        step_of_this_eval = start_step + (len(grids) - grids_before_resume + 1) * train_config.eval_every
         grids.append(
             {
+                "step": step_of_this_eval,
                 "elapsed_s": time.perf_counter() - start,
                 "grid": {f"{hop},{dist}": acc for (hop, dist), acc in grid.items()},
             }
@@ -179,12 +191,16 @@ def main(variant: str) -> None:
         checkpoint_rngs=rngs,
     )
 
-    # `train()` records the step index alongside each eval grid; the eval_fn
-    # closure above cannot see it, so attach it here before the final write.
-    # Only the grids this invocation produced are zipped -- on a resume,
-    # `grids` also holds the earlier run's entries, which already have steps.
+    # `train()` is the authority on which step each grid came from, so reconcile
+    # the steps eval_fn derived against it rather than trusting the arithmetic.
+    # A mismatch would mean eval cadence and start_step disagree, which would
+    # silently mislabel every grid -- worth failing on, not worth papering over.
     for entry, (step, _grid) in zip(grids[grids_before_resume:], history.eval_grids, strict=True):
-        entry["step"] = step
+        if entry["step"] != step:
+            raise AssertionError(
+                f"grid labelled step {entry['step']} was actually produced at step {step} "
+                f"(start_step={start_step}, eval_every={train_config.eval_every})"
+            )
     grids_path.write_text(json.dumps({"variant": variant, "evals": grids}, indent=2))
 
     total_hours = (time.perf_counter() - start) / 3600
