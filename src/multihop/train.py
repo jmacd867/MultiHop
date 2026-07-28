@@ -17,6 +17,7 @@ grid over the course of training, which is what ADR 0003 actually requires.
 """
 
 import json
+import time
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -494,8 +495,10 @@ def train(
         )
 
     history = TrainingHistory()
+    run_start = time.perf_counter()
 
     for step in range(start_step + 1, train_config.total_steps + 1):
+        step_start = time.perf_counter()
         micro_batches, _hop_count, _distance = sample_training_microbatches(
             rng,
             train_config.micro_batch_size,
@@ -508,13 +511,23 @@ def train(
         loss = train_step_accum(model, optimizer, jnp_micro_batches)
         loss_value = float(loss)
         history.loss.append((step, loss_value))
-        print(f"step {step}: loss={loss_value:.4f}")
+        # `flush` and the timings are not cosmetic. These runs are many hours
+        # long and unattended, and stdout redirected to a file is block-
+        # buffered, so without flushing a healthy run and a hung one look
+        # identical (an empty log) for hundreds of steps. `step_s` also makes
+        # the "no comparison is available, both scripts need timestamps first"
+        # gap in docs/runs/hybrid_sanity_run_20260728/README.md answerable.
+        print(
+            f"step {step}: loss={loss_value:.4f} step_s={time.perf_counter() - step_start:.3f} "
+            f"elapsed_h={(time.perf_counter() - run_start) / 3600:.3f}",
+            flush=True,
+        )
 
         if eval_fn is not None and step % train_config.eval_every == 0:
             grid = eval_fn(model)
             history.eval_grids.append((step, grid))
             mean_accuracy = sum(grid.values()) / len(grid)
-            print(f"step {step}: eval mean accuracy={mean_accuracy:.4f}")
+            print(f"step {step}: eval mean accuracy={mean_accuracy:.4f}", flush=True)
 
         if step % train_config.checkpoint_every == 0:
             save_checkpoint(
