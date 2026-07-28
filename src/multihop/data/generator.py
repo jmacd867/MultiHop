@@ -16,7 +16,19 @@ SEP_TOKEN = 1
 QUERY_TOKEN = 2
 NUM_SPECIAL_TOKENS = 3
 
+# The studied hop_count range. Single source of truth for _validate below,
+# train.py's cell sampling, and eval.py's degradation grid -- all three must
+# stay in lockstep or the eval grid silently stops covering what training
+# actually sampled.
+MIN_HOP_COUNT = 1
+MAX_HOP_COUNT = 5
+
 Split = Literal["train", "eval"]
+
+# The distance grid swept by both training's mixed-cell sampling and eval's
+# degradation grid (train.py's sample_cell, eval.py's evaluate_grid).
+DISTANCES: tuple[int, ...] = (0, 3, 9, 21, 45)
+_REFERENCE_DISTRACTOR_COUNT = 2  # ADR 0004
 
 
 class InfeasibleConfigError(ValueError):
@@ -61,9 +73,16 @@ def entity_pool(split: Split, vocab_size: int) -> tuple[int, int]:
     raise ValueError(f"unknown split {split!r}")
 
 
+def total_vocab_size(entity_vocab_size: int) -> int:
+    """Model vocab size implied by an entity_vocab_size: special tokens + disjoint train/eval pools."""
+    return NUM_SPECIAL_TOKENS + 2 * entity_vocab_size
+
+
 def _validate(config: GeneratorConfig) -> int:
-    if not (1 <= config.hop_count <= 5):
-        raise InfeasibleConfigError("hop_count must be in the studied range 1..5")
+    if not (MIN_HOP_COUNT <= config.hop_count <= MAX_HOP_COUNT):
+        raise InfeasibleConfigError(
+            f"hop_count must be in the studied range {MIN_HOP_COUNT}..{MAX_HOP_COUNT}"
+        )
     if config.distance < 0:
         raise InfeasibleConfigError("distance must be >= 0")
     if config.distractor_count < 0:
@@ -171,3 +190,34 @@ def generate_example(
         fact_spans=tuple(fact_spans),
         distractor_spans=tuple(distractor_spans),
     )
+
+
+def reference_distractor_count(distance: int) -> int:
+    """Fixed reference distractor count per ADR 0004: 2 for distance>=3, 0 at distance=0."""
+    return 0 if distance == 0 else _REFERENCE_DISTRACTOR_COUNT
+
+
+def generate_batch(
+    rng: np.random.Generator,
+    hop_count: int,
+    distance: int,
+    entity_vocab_size: int,
+    batch_size: int,
+    split: Split = "train",
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Generate a batch for one (hop_count, distance) cell. Shared by training (train.py) and eval (eval.py)."""
+    distractor_count = reference_distractor_count(distance)
+    sequence_length = required_sequence_length(hop_count, distance)
+
+    gen_config = GeneratorConfig(
+        hop_count=hop_count,
+        distance=distance,
+        distractor_count=distractor_count,
+        sequence_length=sequence_length,
+        vocab_size=entity_vocab_size,
+    )
+    examples = [generate_example(gen_config, split=split, rng=rng) for _ in range(batch_size)]
+    tokens = np.stack([example.tokens for example in examples])
+    query_positions = np.array([example.query_position for example in examples])
+    answers = np.array([example.answer for example in examples])
+    return tokens, query_positions, answers

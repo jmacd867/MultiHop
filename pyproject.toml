@@ -8,7 +8,19 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "flax>=0.12.8",
+    "jax>=0.11.0",
     "numpy>=2.5.1",
+    "safetensors>=0.6.2",
+]
+
+[project.optional-dependencies]
+# GPU deployment (e.g. the DGX Spark, GB10, aarch64+CUDA13 driver). Plain
+# CPU jax stays the default for local dev; `uv sync --extra cuda` on the
+# accelerator box pulls in the CUDA12 plugin (works via forward
+# compatibility with the CUDA13 driver at time of writing).
+cuda = [
+    "jax[cuda12]>=0.11.0",
 ]
 
 [build-system]
@@ -24,6 +36,10 @@ dev = [
 [tool.mypy]
 strict = true
 files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = "optax"
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

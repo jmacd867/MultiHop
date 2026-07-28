@@ -1,0 +1,9 @@
+# Mixed hop_count/distance training measures capacity, not extrapolation
+
+Training one model per (hop_count, distance) grid cell to build the degradation grid would multiply training cost by the grid size for each of the three variants — not tractable on a single DGX Spark. Instead, each variant is trained once with hop_count sampled uniformly from 1–5 and distance sampled from a fixed set of values per step, length-bucketed/padded into batches, with a held-out *eval* slice (disjoint entity vocab, unseen examples) carved out per grid cell.
+
+This is a deliberate framing choice, not just an implementation shortcut: because every (hop_count, distance) cell in the eval grid was also present during training (just on different examples), the resulting degradation grid measures each architecture's **raw capability ceiling on the task** — how well it can do multi-hop chain resolution when it's seen that difficulty level before — not its ability to **extrapolate to unseen configurations** it was never trained on.
+
+That's the right framing for the research question this experiment is built to answer ("does the hybrid/KDA architecture handle multi-hop chains as well as full attention, and does its failure pattern differ by hop distance"), which is a capacity comparison between architectures. It is *not* an extrapolation study.
+
+A future reader should not mistake this degradation grid for evidence about extrapolation to harder configurations than were trained on. Testing that would require deliberately withholding entire (hop_count, distance) cells from training and evaluating only on those — a legitimate follow-up question, but a different experiment than this one.
