@@ -45,6 +45,16 @@ HOP_COUNTS = tuple(range(MIN_HOP_COUNT, MAX_HOP_COUNT + 1))
 # this" floor rather than a formal significance test.
 SIGNIFICANCE_PP = 2.2
 
+# Eval cadence, used only to label grids from files written before steps were
+# recorded inline (see train_variant.py).
+EVAL_EVERY = 500
+
+# Fraction of the available headroom above the shortcut floor that counts as
+# "solved" for the steps-to-criterion view. 0.9 rather than 1.0 because the
+# last few percent are noise-dominated at 512 examples/cell (~2.2pp standard
+# error), so a stricter criterion would measure sampling luck.
+CRITERION_HEADROOM = 0.9
+
 
 def shortcut_floor(distance: int) -> float:
     """Accuracy reachable with no Chain traversal at all (ADR 0012).
@@ -61,6 +71,68 @@ def shortcut_floor(distance: int) -> float:
     every hop_count.
     """
     return 1.0 if distance == 0 else 1.0 / (1 + reference_distractor_count(distance))
+
+
+def load_all_grids(runs_dir: Path, variant: str) -> list[tuple[int, dict[tuple[int, int], float]]]:
+    """Every (step, grid) this Variant recorded, in order."""
+    payload = json.loads((runs_dir / f"{variant}_grids.json").read_text())
+    out = []
+    for index, entry in enumerate(payload["evals"], start=1):
+        grid = {
+            (int(k.split(",")[0]), int(k.split(",")[1])): float(v) for k, v in entry["grid"].items()
+        }
+        out.append((int(entry.get("step", index * EVAL_EVERY)), grid))
+    return out
+
+
+def steps_to_criterion(
+    curves: list[tuple[int, dict[tuple[int, int], float]]], cell: tuple[int, int]
+) -> int | None:
+    """First step at which `cell` reached CRITERION_HEADROOM of its available headroom.
+
+    Reported instead of (not as well as) final accuracy when Variants saturate.
+    A grid where every cell reads 1.000 has no profile left to compare, but the
+    *rate* at which each cell got there still does -- and the baseline's own
+    curve shows that resolution is ample: it moved 0.002 -> 0.325 -> 0.901
+    across three consecutive evals.
+
+    The criterion is expressed in headroom above the ADR 0012 shortcut floor,
+    not in raw accuracy, so a cell is not credited for accuracy it could have
+    reached without traversing anything.
+    """
+    floor = shortcut_floor(cell[1])
+    target = floor + CRITERION_HEADROOM * (1.0 - floor) if floor < 1.0 else CRITERION_HEADROOM
+    for step, grid in curves:
+        if cell in grid and grid[cell] >= target:
+            return step
+    return None
+
+
+def render_steps_to_criterion(
+    curves: list[tuple[int, dict[tuple[int, int], float]]], title: str
+) -> None:
+    print(f"\n{title}")
+    header = "hop \\ dist" + "".join(f"{d:>10}" for d in DISTANCES)
+    print(header)
+    print("-" * len(header))
+    for hop in HOP_COUNTS:
+        cells = []
+        for dist in DISTANCES:
+            reached = steps_to_criterion(curves, (hop, dist))
+            cells.append(f"{'never':>10}" if reached is None else f"{reached:>10}")
+        print(f"{hop:>9} " + "".join(cells))
+    print(f"  steps to reach {CRITERION_HEADROOM:.0%} of headroom above the ADR 0012 shortcut floor")
+    print("  ('never' = not reached within the run; lower is better)")
+    reached = [s for hop in HOP_COUNTS for d in DISTANCES
+               if (s := steps_to_criterion(curves, (hop, d))) is not None]
+    if reached:
+        distinct = sorted(set(reached))
+        print(f"  RESOLUTION: eval cadence is {EVAL_EVERY} steps, and this Variant's cells "
+              f"resolve to only {len(distinct)} distinct value(s) {distinct}.")
+        if len(distinct) <= 3:
+            print("  ^^ too coarse to rank cells confidently -- a one-eval difference here is "
+                  f"{EVAL_EVERY} steps of quantisation, not a measured gap. Treat ordering as "
+                  "suggestive only.")
 
 
 def load_final_grid(runs_dir: Path, variant: str) -> tuple[dict[tuple[int, int], float], int]:
@@ -162,6 +234,11 @@ def main(runs_dir: Path) -> None:
         below = [c for c in scoring if grid[c] < shortcut_floor(c[1])]
         print(f"  cells at/below the shortcut floor: {len(below)}/{len(scoring)}"
               + (f" -> {sorted(below)}" if below else ""))
+
+        curves = load_all_grids(runs_dir, variant)
+        render_steps_to_criterion(
+            curves, f"=== {variant} -- steps to criterion (the metric that survives saturation) ==="
+        )
 
     for variant in ("hybrid", "kda"):
         if variant in grids and "baseline" in grids:
