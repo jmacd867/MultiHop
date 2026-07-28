@@ -84,6 +84,36 @@ against ~45h of remaining time on borrowed hardware, leaving no margin, and it
 column stays degenerate regardless. Recorded as the obvious follow-up
 experiment rather than a fix applied under deadline.
 
+## Consequence: the hybrid single-cell probe established less than it claimed
+
+`scripts/probe_hybrid_single_cell.py` ran at hop_count=1, distance=0 and
+reached 1.0000 accuracy by step 750.
+`docs/runs/hybrid_sanity_run_20260728/README.md` read that as "the first
+demonstration of real task performance at full scale by any Variant", scoped
+carefully to "in-context binding and a working forward/backward path -- **not**
+multi-hop reasoning".
+
+That scoping was right as far as it went, but the binding half does not
+survive this ADR. The probe's cell is the *most* degenerate cell in the grid.
+Its entire sequence is five tokens:
+
+```
+A B | ? A          chain A->B, answer B
+```
+
+The shortcut solves it in **512 of 512** examples (measured), because B is the
+only once-appearing entity. Worse, an even cheaper strategy also works: the
+answer is always at **position 1**, so "copy the second token" scores 100% with
+no binding, no retrieval, and no attention to the Query at all.
+
+So the probe demonstrates that gradients flow and the composed stack trains --
+which is genuinely what it was built to check, and that conclusion stands --
+but it is **not** evidence of in-context binding. Any future reader comparing
+the probe against the real runs should treat it as a smoke test of the
+forward/backward path only. The README's caveat should be read as stronger
+than written: not merely "not multi-hop reasoning", but "not necessarily
+retrieval of any kind".
+
 ## Why this was not caught earlier
 
 ADR 0004 chose `distractor_count=2` and explicitly reasoned about distractor
