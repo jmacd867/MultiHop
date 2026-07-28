@@ -1,0 +1,184 @@
+step 1: hop_count=5 distance=21 seq_len=143 compiled=True elapsed=68.0795s loss=18.9704
+step 2: hop_count=5 distance=45 seq_len=287 compiled=True elapsed=73.9141s loss=19.0339
+step 3: hop_count=4 distance=9 seq_len=59 compiled=True elapsed=63.8065s loss=18.8130
+step 4: hop_count=2 distance=45 seq_len=143 compiled=False elapsed=1.8872s loss=17.4359
+step 5: hop_count=2 distance=3 seq_len=17 compiled=True elapsed=60.2487s loss=19.3085
+step 6: hop_count=1 distance=45 seq_len=95 compiled=True elapsed=68.1052s loss=15.1032
+step 7: hop_count=1 distance=0 seq_len=5 compiled=True elapsed=55.7369s loss=19.6380
+step 8: hop_count=5 distance=9 seq_len=71 compiled=True elapsed=68.2150s loss=14.8448
+step 9: hop_count=5 distance=0 seq_len=17 compiled=False elapsed=0.3394s loss=19.6408
+step 10: hop_count=2 distance=45 seq_len=143 compiled=False elapsed=1.8916s loss=12.1150
+step 11: hop_count=3 distance=9 seq_len=47 compiled=True elapsed=63.8010s loss=14.3730
+step 12: hop_count=5 distance=3 seq_len=35 compiled=True elapsed=63.8610s loss=17.3052
+step 13: hop_count=4 distance=45 seq_len=239 compiled=True elapsed=75.8644s loss=11.5381
+step 14: hop_count=2 distance=21 seq_len=71 compiled=False elapsed=0.9769s loss=12.5521
+step 15: hop_count=2 distance=21 seq_len=71 compiled=False elapsed=0.9463s loss=12.4063
+step 16: hop_count=3 distance=21 seq_len=95 compiled=False elapsed=1.2583s loss=12.1409
+step 17: hop_count=3 distance=0 seq_len=11 compiled=True elapsed=59.4108s loss=19.3612
+step 18: hop_count=5 distance=0 seq_len=17 compiled=False elapsed=0.3380s loss=19.2384
+step 19: hop_count=5 distance=9 seq_len=71 compiled=False elapsed=0.9687s loss=13.3122
+step 20: hop_count=4 distance=21 seq_len=119 compiled=True elapsed=70.0867s loss=11.8192
+step 21: hop_count=4 distance=9 seq_len=59 compiled=False elapsed=0.8541s loss=13.3477
+step 22: hop_count=2 distance=9 seq_len=35 compiled=False elapsed=0.5630s loss=13.9695
+step 23: hop_count=1 distance=0 seq_len=5 compiled=False elapsed=0.2126s loss=19.0330
+step 24: hop_count=2 distance=9 seq_len=35 compiled=False elapsed=0.5377s loss=13.7175
+step 25: hop_count=2 distance=45 seq_len=143 compiled=False elapsed=1.8972s loss=11.0012
+step 26: hop_count=4 distance=45 seq_len=239 compiled=False elapsed=3.1629s loss=10.7761
+step 27: hop_count=5 distance=45 seq_len=287 compiled=False elapsed=3.7874s loss=10.7456
+step 28: hop_count=3 distance=3 seq_len=23 compiled=True elapsed=59.6093s loss=16.6738
+step 29: hop_count=3 distance=45 seq_len=191 compiled=True elapsed=78.5462s loss=10.7778
+step 30: hop_count=5 distance=45 seq_len=287 compiled=False elapsed=3.7712s loss=10.6915
+step 31: hop_count=4 distance=21 seq_len=119 compiled=False elapsed=1.5510s loss=11.4147
+step 32: hop_count=3 distance=0 seq_len=11 compiled=False elapsed=0.2732s loss=17.9713
+step 33: hop_count=1 distance=9 seq_len=23 compiled=False elapsed=0.3979s loss=14.2355
+step 34: hop_count=1 distance=9 seq_len=23 compiled=False elapsed=0.3853s loss=14.1077
+step 35: hop_count=5 distance=45 seq_len=287 compiled=False elapsed=3.7424s loss=11.0867
+step 36: hop_count=1 distance=21 seq_len=47 compiled=False elapsed=0.7036s loss=12.2521
+step 37: hop_count=5 distance=0 seq_len=17 compiled=False elapsed=0.3355s loss=17.5220
+step 38: hop_count=2 distance=21 seq_len=71 compiled=False elapsed=1.0026s loss=11.6580
+step 39: hop_count=1 distance=9 seq_len=23 compiled=False elapsed=0.3846s loss=14.1333
+step 40: hop_count=3 distance=21 seq_len=95 compiled=False elapsed=1.2597s loss=11.4571
+step 41: hop_count=5 distance=21 seq_len=143 compiled=False elapsed=1.8900s loss=11.2696
+step 42: hop_count=5 distance=9 seq_len=71 compiled=False elapsed=0.9488s loss=12.5673
+step 43: hop_count=2 distance=21 seq_len=71 compiled=False elapsed=0.9703s loss=11.5166
+step 44: hop_count=2 distance=3 seq_len=17 compiled=False elapsed=0.3174s loss=16.3349
+step 45: hop_count=1 distance=21 seq_len=47 compiled=False elapsed=0.6727s loss=11.8379
+step 46: hop_count=5 distance=45 seq_len=287 compiled=False elapsed=3.7418s loss=10.5295
+step 47: hop_count=1 distance=21 seq_len=47 compiled=False elapsed=0.6696s loss=11.8324
+step 48: hop_count=1 distance=45 seq_len=95 compiled=False elapsed=1.2252s loss=10.7309
+step 49: hop_count=3 distance=0 seq_len=11 compiled=False elapsed=0.2465s loss=17.1987
+step 50: hop_count=5 distance=3 seq_len=35 compiled=False elapsed=0.5637s loss=15.1015
+step 51: hop_count=4 distance=9 seq_len=59 compiled=False elapsed=0.8338s loss=12.6241
+step 52: hop_count=3 distance=0 seq_len=11 compiled=False elapsed=0.2486s loss=16.6179
+step 53: hop_count=5 distance=21 seq_len=143 compiled=False elapsed=1.8554s loss=11.5077
+step 54: hop_count=2 distance=9 seq_len=35 compiled=False elapsed=0.5279s loss=13.0506
+step 55: hop_count=1 distance=9 seq_len=23 compiled=False elapsed=0.3764s loss=13.6878
+step 56: hop_count=2 distance=21 seq_len=71 compiled=False elapsed=0.9822s loss=11.3172
+step 57: hop_count=5 distance=9 seq_len=71 compiled=False elapsed=0.9608s loss=12.4312
+step 58: hop_count=1 distance=0 seq_len=5 compiled=False elapsed=0.2119s loss=15.3092
+step 59: hop_count=3 distance=45 seq_len=191 compiled=False elapsed=2.5792s loss=10.7156
+step 60: hop_count=3 distance=21 seq_len=95 compiled=False elapsed=1.2247s loss=11.2070
+step 61: hop_count=3 distance=45 seq_len=191 compiled=False elapsed=2.5830s loss=10.5437
+step 62: hop_count=4 distance=0 seq_len=14 compiled=True elapsed=59.0271s loss=17.2245
+step 63: hop_count=5 distance=3 seq_len=35 compiled=False elapsed=0.5437s loss=15.4019
+step 64: hop_count=2 distance=21 seq_len=71 compiled=False elapsed=0.9937s loss=11.4359
+step 65: hop_count=5 distance=3 seq_len=35 compiled=False elapsed=0.5185s loss=15.0525
+step 66: hop_count=2 distance=0 seq_len=8 compiled=True elapsed=55.0208s loss=15.8408
+step 67: hop_count=1 distance=21 seq_len=47 compiled=False elapsed=0.6996s loss=12.5388
+step 68: hop_count=2 distance=3 seq_len=17 compiled=False elapsed=0.3429s loss=15.9659
+step 69: hop_count=4 distance=45 seq_len=239 compiled=False elapsed=3.1446s loss=11.8587
+step 70: hop_count=2 distance=21 seq_len=71 compiled=False elapsed=1.0057s loss=11.5278
+step 71: hop_count=4 distance=45 seq_len=239 compiled=False elapsed=3.0926s loss=10.4619
+step 72: hop_count=5 distance=9 seq_len=71 compiled=False elapsed=0.9446s loss=12.5500
+step 73: hop_count=2 distance=45 seq_len=143 compiled=False elapsed=1.8801s loss=10.9324
+step 74: hop_count=4 distance=0 seq_len=14 compiled=False elapsed=0.3056s loss=16.4260
+step 75: hop_count=4 distance=45 seq_len=239 compiled=False elapsed=3.1011s loss=10.3940
+step 76: hop_count=4 distance=21 seq_len=119 compiled=False elapsed=1.5518s loss=11.0285
+step 77: hop_count=2 distance=9 seq_len=35 compiled=False elapsed=0.5554s loss=12.8822
+step 78: hop_count=2 distance=3 seq_len=17 compiled=False elapsed=0.3196s loss=15.6172
+step 79: hop_count=5 distance=3 seq_len=35 compiled=False elapsed=0.5030s loss=14.8084
+step 80: hop_count=1 distance=9 seq_len=23 compiled=False elapsed=0.4052s loss=13.5154
+step 81: hop_count=3 distance=45 seq_len=191 compiled=False elapsed=2.6075s loss=10.6813
+step 82: hop_count=3 distance=0 seq_len=11 compiled=False elapsed=0.2717s loss=16.1812
+step 83: hop_count=3 distance=9 seq_len=47 compiled=False elapsed=0.6781s loss=12.4475
+step 84: hop_count=4 distance=9 seq_len=59 compiled=False elapsed=0.8313s loss=12.2446
+step 85: hop_count=4 distance=0 seq_len=14 compiled=False elapsed=0.2811s loss=16.3824
+step 86: hop_count=5 distance=3 seq_len=35 compiled=False elapsed=0.5236s loss=14.7315
+step 87: hop_count=1 distance=21 seq_len=47 compiled=False elapsed=0.6718s loss=11.5437
+step 88: hop_count=3 distance=9 seq_len=47 compiled=False elapsed=0.6756s loss=12.3778
+step 89: hop_count=1 distance=0 seq_len=5 compiled=False elapsed=0.2122s loss=15.0374
+step 90: hop_count=2 distance=21 seq_len=71 compiled=False elapsed=0.9582s loss=11.1683
+step 91: hop_count=3 distance=45 seq_len=191 compiled=False elapsed=2.5841s loss=10.2615
+step 92: hop_count=2 distance=45 seq_len=143 compiled=False elapsed=1.8571s loss=10.3442
+step 93: hop_count=1 distance=45 seq_len=95 compiled=False elapsed=1.2636s loss=10.4343
+step 94: hop_count=1 distance=3 seq_len=11 compiled=False elapsed=0.2491s loss=16.5787
+step 95: hop_count=4 distance=3 seq_len=29 compiled=True elapsed=63.5578s loss=15.2506
+step 96: hop_count=1 distance=21 seq_len=47 compiled=False elapsed=0.7018s loss=11.5096
+step 97: hop_count=2 distance=21 seq_len=71 compiled=False elapsed=1.0032s loss=11.1798
+step 98: hop_count=3 distance=9 seq_len=47 compiled=False elapsed=0.6721s loss=12.4253
+step 99: hop_count=2 distance=3 seq_len=17 compiled=False elapsed=0.3392s loss=15.4439
+step 100: hop_count=1 distance=0 seq_len=5 compiled=False elapsed=0.2006s loss=14.6514
+step 101: hop_count=3 distance=0 seq_len=11 compiled=False elapsed=0.2711s loss=15.9994
+step 102: hop_count=3 distance=9 seq_len=47 compiled=False elapsed=0.6820s loss=12.9475
+step 103: hop_count=2 distance=21 seq_len=71 compiled=False elapsed=0.9558s loss=11.9136
+step 104: hop_count=2 distance=0 seq_len=8 compiled=False elapsed=0.2368s loss=15.4620
+step 105: hop_count=4 distance=0 seq_len=14 compiled=False elapsed=0.3038s loss=15.9297
+step 106: hop_count=5 distance=0 seq_len=17 compiled=False elapsed=0.3208s loss=15.9044
+step 107: hop_count=2 distance=3 seq_len=17 compiled=False elapsed=0.3204s loss=15.2369
+step 108: hop_count=1 distance=9 seq_len=23 compiled=False elapsed=0.4099s loss=13.3543
+step 109: hop_count=4 distance=21 seq_len=119 compiled=False elapsed=1.5541s loss=11.0524
+step 110: hop_count=4 distance=3 seq_len=29 compiled=False elapsed=0.4575s loss=14.4538
+step 111: hop_count=3 distance=9 seq_len=47 compiled=False elapsed=0.6776s loss=12.2419
+step 112: hop_count=4 distance=45 seq_len=239 compiled=False elapsed=3.1279s loss=10.1643
+step 113: hop_count=1 distance=9 seq_len=23 compiled=False elapsed=0.3878s loss=14.3370
+step 114: hop_count=2 distance=0 seq_len=8 compiled=False elapsed=0.2087s loss=16.3906
+step 115: hop_count=5 distance=45 seq_len=287 compiled=False elapsed=3.7729s loss=10.0061
+step 116: hop_count=2 distance=3 seq_len=17 compiled=False elapsed=0.3213s loss=15.3465
+step 117: hop_count=5 distance=21 seq_len=143 compiled=False elapsed=1.8805s loss=10.7455
+step 118: hop_count=4 distance=3 seq_len=29 compiled=False elapsed=0.4693s loss=14.7078
+step 119: hop_count=2 distance=0 seq_len=8 compiled=False elapsed=0.2324s loss=15.9461
+step 120: hop_count=2 distance=9 seq_len=35 compiled=False elapsed=0.5473s loss=12.3935
+step 121: hop_count=3 distance=3 seq_len=23 compiled=False elapsed=0.3767s loss=14.6434
+step 122: hop_count=2 distance=9 seq_len=35 compiled=False elapsed=0.5277s loss=12.4538
+step 123: hop_count=5 distance=21 seq_len=143 compiled=False elapsed=1.8540s loss=10.7353
+step 124: hop_count=5 distance=3 seq_len=35 compiled=False elapsed=0.5188s loss=14.0237
+step 125: hop_count=3 distance=3 seq_len=23 compiled=False elapsed=0.3743s loss=14.3679
+step 126: hop_count=5 distance=0 seq_len=17 compiled=False elapsed=0.3136s loss=15.6613
+step 127: hop_count=4 distance=45 seq_len=239 compiled=False elapsed=3.1055s loss=10.0850
+step 128: hop_count=3 distance=9 seq_len=47 compiled=False elapsed=0.6744s loss=12.1528
+step 129: hop_count=2 distance=3 seq_len=17 compiled=False elapsed=0.3178s loss=14.7114
+step 130: hop_count=4 distance=21 seq_len=119 compiled=False elapsed=1.5302s loss=10.6685
+step 131: hop_count=2 distance=3 seq_len=17 compiled=False elapsed=0.3161s loss=14.6670
+step 132: hop_count=5 distance=21 seq_len=143 compiled=False elapsed=1.8637s loss=10.6305
+step 133: hop_count=5 distance=9 seq_len=71 compiled=False elapsed=0.9517s loss=11.8329
+step 134: hop_count=5 distance=0 seq_len=17 compiled=False elapsed=0.3170s loss=15.5536
+step 135: hop_count=4 distance=0 seq_len=14 compiled=False elapsed=0.2775s loss=15.3689
+step 136: hop_count=5 distance=0 seq_len=17 compiled=False elapsed=0.3159s loss=15.3858
+step 137: hop_count=4 distance=45 seq_len=239 compiled=False elapsed=3.1056s loss=10.5503
+step 138: hop_count=5 distance=9 seq_len=71 compiled=False elapsed=0.9466s loss=12.2596
+step 139: hop_count=5 distance=45 seq_len=287 compiled=False elapsed=3.7294s loss=10.0359
+step 140: hop_count=2 distance=0 seq_len=8 compiled=False elapsed=0.2130s loss=15.4360
+step 141: hop_count=3 distance=45 seq_len=191 compiled=False elapsed=2.6149s loss=10.0533
+step 142: hop_count=1 distance=0 seq_len=5 compiled=False elapsed=0.1792s loss=15.0057
+step 143: hop_count=1 distance=45 seq_len=95 compiled=False elapsed=1.2577s loss=10.2290
+step 144: hop_count=4 distance=21 seq_len=119 compiled=False elapsed=1.5286s loss=10.7497
+step 145: hop_count=5 distance=21 seq_len=143 compiled=False elapsed=1.8649s loss=10.5458
+step 146: hop_count=1 distance=9 seq_len=23 compiled=False elapsed=0.3880s loss=13.0528
+step 147: hop_count=1 distance=9 seq_len=23 compiled=False elapsed=0.3882s loss=12.9776
+step 148: hop_count=3 distance=3 seq_len=23 compiled=False elapsed=0.3800s loss=14.4848
+step 149: hop_count=4 distance=21 seq_len=119 compiled=False elapsed=1.5290s loss=10.5890
+step 150: hop_count=5 distance=9 seq_len=71 compiled=False elapsed=0.9476s loss=11.5615
+
+wrote per-step log to /home/kalin/coding/multihop-experiment/timing_run.csv
+
+=== cell hit counts (hop_count, distance) -> count ===
+(1, 0): 6
+(1, 3): 1
+(1, 9): 9
+(1, 21): 6
+(1, 45): 4
+(2, 0): 5
+(2, 3): 9
+(2, 9): 6
+(2, 21): 10
+(2, 45): 5
+(3, 0): 6
+(3, 3): 4
+(3, 9): 7
+(3, 21): 3
+(3, 45): 6
+(4, 0): 5
+(4, 3): 3
+(4, 9): 4
+(4, 21): 7
+(4, 45): 8
+(5, 0): 7
+(5, 3): 7
+(5, 9): 8
+(5, 21): 7
+(5, 45): 7
+
+=== timing: 17 compiled steps (excluded), 133 steady-state steps ===
+steady-state per-step: mean=1.0781s median=0.6776s min=0.1792s max=3.7874s
+
+20000-step estimate: 5.99h steady-state + ~1106.9s one-time compile overhead (17 unique shapes seen so far, out of 25 possible)

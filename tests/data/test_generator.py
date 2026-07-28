@@ -3,6 +3,7 @@ import pytest
 
 from multihop.data.generator import (
     FILLER_TOKEN,
+    NUM_SPECIAL_TOKENS,
     QUERY_TOKEN,
     SEP_TOKEN,
     Example,
@@ -42,7 +43,7 @@ def test_generate_example_raises_on_sequence_length_mismatch() -> None:
     config = make_config(sequence_length=required_sequence_length(3, 6) + 1)
     rng = np.random.default_rng(0)
     with pytest.raises(InfeasibleConfigError):
-        generate_example(config, split="train", rng=rng)
+        generate_example(config, rng=rng)
 
 
 def test_generate_example_raises_on_distractor_capacity_exceeded() -> None:
@@ -57,7 +58,7 @@ def test_generate_example_raises_on_distractor_capacity_exceeded() -> None:
     )
     rng = np.random.default_rng(0)
     with pytest.raises(InfeasibleConfigError):
-        generate_example(config, split="train", rng=rng)
+        generate_example(config, rng=rng)
 
 
 def test_generate_example_raises_on_distractors_with_no_capacity_gaps() -> None:
@@ -70,7 +71,7 @@ def test_generate_example_raises_on_distractors_with_no_capacity_gaps() -> None:
     )
     rng = np.random.default_rng(0)
     with pytest.raises(InfeasibleConfigError):
-        generate_example(config, split="train", rng=rng)
+        generate_example(config, rng=rng)
 
 
 def test_generate_example_raises_on_hop_count_above_studied_range() -> None:
@@ -82,20 +83,20 @@ def test_generate_example_raises_on_hop_count_above_studied_range() -> None:
     )
     rng = np.random.default_rng(0)
     with pytest.raises(InfeasibleConfigError):
-        generate_example(config, split="train", rng=rng)
+        generate_example(config, rng=rng)
 
 
 def test_generate_example_raises_on_insufficient_vocab_pool() -> None:
     config = make_config(hop_count=3, vocab_size=3)  # needs at least hop_count + 1 entities
     rng = np.random.default_rng(0)
     with pytest.raises(InfeasibleConfigError):
-        generate_example(config, split="train", rng=rng)
+        generate_example(config, rng=rng)
 
 
 def test_chain_entities_are_distinct_and_correct_count() -> None:
     config = make_config()
     rng = np.random.default_rng(0)
-    example = generate_example(config, split="train", rng=rng)
+    example = generate_example(config, rng=rng)
     assert len(example.chain_entities) == config.hop_count + 1
     assert len(set(example.chain_entities)) == config.hop_count + 1
 
@@ -103,7 +104,7 @@ def test_chain_entities_are_distinct_and_correct_count() -> None:
 def test_fact_spans_encode_correct_chain_transitions() -> None:
     config = make_config()
     rng = np.random.default_rng(0)
-    example = generate_example(config, split="train", rng=rng)
+    example = generate_example(config, rng=rng)
     assert len(example.fact_spans) == config.hop_count
     for i, (start, end) in enumerate(example.fact_spans):
         assert end - start == 3
@@ -116,7 +117,7 @@ def test_fact_spans_encode_correct_chain_transitions() -> None:
 def test_answer_is_chain_terminal_and_query_position_correct() -> None:
     config = make_config()
     rng = np.random.default_rng(0)
-    example = generate_example(config, split="train", rng=rng)
+    example = generate_example(config, rng=rng)
     assert example.answer == example.chain_entities[-1]
     assert example.tokens[example.query_position] == example.chain_entities[0]
     assert example.tokens[example.query_position - 1] == QUERY_TOKEN
@@ -126,7 +127,7 @@ def test_answer_is_chain_terminal_and_query_position_correct() -> None:
 def test_distractor_spans_share_subject_with_chain_but_do_not_continue_it() -> None:
     config = make_config()
     rng = np.random.default_rng(0)
-    example = generate_example(config, split="train", rng=rng)
+    example = generate_example(config, rng=rng)
     assert len(example.distractor_spans) == config.distractor_count
     chain_subjects = set(example.chain_entities[:-1])
     chain_pairs = {
@@ -144,7 +145,7 @@ def test_distractor_spans_share_subject_with_chain_but_do_not_continue_it() -> N
 def test_spans_do_not_overlap() -> None:
     config = make_config()
     rng = np.random.default_rng(0)
-    example = generate_example(config, split="train", rng=rng)
+    example = generate_example(config, rng=rng)
     occupied = np.zeros(len(example.tokens), dtype=bool)
     for start, end in [*example.fact_spans, *example.distractor_spans]:
         assert not occupied[start:end].any()
@@ -154,24 +155,26 @@ def test_spans_do_not_overlap() -> None:
 def test_total_sequence_length_matches_config() -> None:
     config = make_config()
     rng = np.random.default_rng(0)
-    example = generate_example(config, split="train", rng=rng)
+    example = generate_example(config, rng=rng)
     assert len(example.tokens) == config.sequence_length
 
 
-def test_train_and_eval_entity_pools_are_disjoint() -> None:
+def test_all_examples_draw_from_the_single_shared_entity_pool() -> None:
+    # ADR 0008: there is exactly one entity pool now, not disjoint
+    # train/eval ranges -- every drawn entity id must fall inside
+    # [NUM_SPECIAL_TOKENS, NUM_SPECIAL_TOKENS + vocab_size), regardless of
+    # which call produced it.
     config = make_config(distractor_count=0)
     rng = np.random.default_rng(0)
-    train_examples = [generate_example(config, split="train", rng=rng) for _ in range(20)]
-    eval_examples = [generate_example(config, split="eval", rng=rng) for _ in range(20)]
-    train_entities = {e for ex in train_examples for e in ex.chain_entities}
-    eval_entities = {e for ex in eval_examples for e in ex.chain_entities}
-    assert train_entities.isdisjoint(eval_entities)
+    examples = [generate_example(config, rng=rng) for _ in range(20)]
+    entities = {e for ex in examples for e in ex.chain_entities}
+    assert entities.issubset(range(NUM_SPECIAL_TOKENS, NUM_SPECIAL_TOKENS + config.vocab_size))
 
 
 def test_generation_is_reproducible_given_seeded_rng() -> None:
     config = make_config()
-    example_a = generate_example(config, split="train", rng=np.random.default_rng(42))
-    example_b = generate_example(config, split="train", rng=np.random.default_rng(42))
+    example_a = generate_example(config, rng=np.random.default_rng(42))
+    example_b = generate_example(config, rng=np.random.default_rng(42))
     assert np.array_equal(example_a.tokens, example_b.tokens)
     assert example_a.answer == example_b.answer
 
@@ -189,7 +192,7 @@ def test_distractor_objects_valid_with_minimal_vocab_pool() -> None:
         vocab_size=hop_count + 2,
     )
     rng = np.random.default_rng(0)
-    example = generate_example(config, split="train", rng=rng)
+    example = generate_example(config, rng=rng)
     chain_set = set(example.chain_entities)
     for start, end in example.distractor_spans:
         _subj, obj, _sep = example.tokens[start:end]
@@ -199,6 +202,6 @@ def test_distractor_objects_valid_with_minimal_vocab_pool() -> None:
 def test_no_filler_tokens_leak_into_answer_or_query_block() -> None:
     config = make_config()
     rng = np.random.default_rng(0)
-    example = generate_example(config, split="train", rng=rng)
+    example = generate_example(config, rng=rng)
     assert example.tokens[example.query_position] != FILLER_TOKEN
     assert example.tokens[example.query_position - 1] == QUERY_TOKEN

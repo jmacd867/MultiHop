@@ -10,7 +10,7 @@ ENTITY_VOCAB_SIZE = 20
 
 
 def make_model() -> FullAttentionBaseline:
-    model_vocab_size = NUM_SPECIAL_TOKENS + 2 * ENTITY_VOCAB_SIZE
+    model_vocab_size = NUM_SPECIAL_TOKENS + ENTITY_VOCAB_SIZE
     config = ModelConfig(
         n_layers=1, embed_dim=16, n_heads=2, ffn_dim=32, max_seq_len=300, vocab_size=model_vocab_size
     )

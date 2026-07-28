@@ -6,7 +6,6 @@ module implements.
 """
 
 from dataclasses import dataclass
-from typing import Literal
 
 import numpy as np
 import numpy.typing as npt
@@ -22,8 +21,6 @@ NUM_SPECIAL_TOKENS = 3
 # actually sampled.
 MIN_HOP_COUNT = 1
 MAX_HOP_COUNT = 5
-
-Split = Literal["train", "eval"]
 
 # The distance grid swept by both training's mixed-cell sampling and eval's
 # degradation grid (train.py's sample_cell, eval.py's evaluate_grid).
@@ -64,18 +61,14 @@ def max_distractor_capacity(hop_count: int, distance: int) -> int:
     return (hop_count + 1) * (distance // 3)
 
 
-def entity_pool(split: Split, vocab_size: int) -> tuple[int, int]:
-    """Return (start_id, size) of the disjoint entity id range for a split."""
-    if split == "train":
-        return (NUM_SPECIAL_TOKENS, vocab_size)
-    if split == "eval":
-        return (NUM_SPECIAL_TOKENS + vocab_size, vocab_size)
-    raise ValueError(f"unknown split {split!r}")
-
-
 def total_vocab_size(entity_vocab_size: int) -> int:
-    """Model vocab size implied by an entity_vocab_size: special tokens + disjoint train/eval pools."""
-    return NUM_SPECIAL_TOKENS + 2 * entity_vocab_size
+    """Model vocab size implied by an entity_vocab_size: special tokens + the one shared entity pool.
+
+    See ADR 0008: entities are drawn from a single shared pool for every
+    example (train and freshly-generated eval alike), not disjoint
+    train/eval ranges -- so there is exactly one pool to size, not two.
+    """
+    return NUM_SPECIAL_TOKENS + entity_vocab_size
 
 
 def _validate(config: GeneratorConfig) -> int:
@@ -113,12 +106,18 @@ def _validate(config: GeneratorConfig) -> int:
     return required_len
 
 
-def generate_example(
-    config: GeneratorConfig, split: Split, rng: np.random.Generator
-) -> Example:
+def generate_example(config: GeneratorConfig, rng: np.random.Generator) -> Example:
+    """Draw one example's entity bindings fresh from the single shared pool (ADR 0008).
+
+    Every call -- whether this example is used for training or for eval --
+    draws from the same entity id range. There is no reserved/held-out id
+    range: genuine generalization here comes from the combinatorics of which
+    entities get bound to which chain/distractor roles in this specific
+    example, not from novel token ids.
+    """
     _validate(config)
 
-    pool_start, pool_size = entity_pool(split, config.vocab_size)
+    pool_start, pool_size = NUM_SPECIAL_TOKENS, config.vocab_size
     chain_entities = tuple(
         int(pool_start + i) for i in rng.choice(pool_size, size=config.hop_count + 1, replace=False)
     )
@@ -203,9 +202,14 @@ def generate_batch(
     distance: int,
     entity_vocab_size: int,
     batch_size: int,
-    split: Split = "train",
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Generate a batch for one (hop_count, distance) cell. Shared by training (train.py) and eval (eval.py)."""
+    """Generate a batch for one (hop_count, distance) cell. Shared by training (train.py) and eval (eval.py).
+
+    No `split` argument: every example draws from the same shared entity
+    pool (ADR 0008). Training and eval differ only in which `rng` the
+    caller passes in -- eval.py uses a fixed shared seed across model
+    variants for cross-variant comparability, not a separate id range.
+    """
     distractor_count = reference_distractor_count(distance)
     sequence_length = required_sequence_length(hop_count, distance)
 
@@ -216,7 +220,7 @@ def generate_batch(
         sequence_length=sequence_length,
         vocab_size=entity_vocab_size,
     )
-    examples = [generate_example(gen_config, split=split, rng=rng) for _ in range(batch_size)]
+    examples = [generate_example(gen_config, rng=rng) for _ in range(batch_size)]
     tokens = np.stack([example.tokens for example in examples])
     query_positions = np.array([example.query_position for example in examples])
     answers = np.array([example.answer for example in examples])

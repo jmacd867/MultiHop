@@ -1,4 +1,4 @@
-"""Short sanity run: full 125M-param baseline, on-the-fly mixed-cell training.
+"""Short sanity run: full ~119M-param baseline, on-the-fly mixed-cell training.
 
 Not a real experimental run (see TrainConfig below for the reduced step
 budget) -- this exists to confirm the training loop actually decreases loss
@@ -12,12 +12,12 @@ import numpy as np
 from flax import nnx
 
 from multihop.data.generator import total_vocab_size
-from multihop.eval import evaluate_grid
+from multihop.eval import EVAL_SEED, evaluate_grid
 from multihop.models.baseline import FullAttentionBaseline
 from multihop.models.config import ModelConfig
 from multihop.train import TrainConfig, build_optimizer_tx, train
 
-ENTITY_VOCAB_SIZE = 8_000  # ADR 0002
+ENTITY_VOCAB_SIZE = 8_000  # ADR 0008
 
 if __name__ == "__main__":
     # vocab_size is derived from ENTITY_VOCAB_SIZE rather than left at
@@ -32,7 +32,7 @@ if __name__ == "__main__":
         eval_every=100,
         checkpoint_every=150,
         # batch_size=256 (the TrainConfig default) OOMs on GB10 for this
-        # 125M model with no gradient checkpointing -- an isolated grad
+        # ~119M model with no gradient checkpointing -- an isolated grad
         # computation failed to allocate even after backing off from 91GiB
         # down through 31GiB+, and the fused train_step (which doesn't
         # crash outright, since XLA can donate/reuse buffers more
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     )
     optimizer = nnx.Optimizer(model, build_optimizer_tx(train_config), wrt=nnx.Param)
 
-    eval_rng = np.random.default_rng(1)
+    eval_rng = np.random.default_rng(EVAL_SEED)
 
     def eval_fn(m: FullAttentionBaseline) -> dict[tuple[int, int], float]:
         return dict(evaluate_grid(m, ENTITY_VOCAB_SIZE, eval_rng, n_examples_per_cell=32))

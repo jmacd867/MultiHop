@@ -1,4 +1,4 @@
-"""Pure full-attention decoder-only baseline, ~125M params (ADR 0002)."""
+"""Pure full-attention decoder-only baseline, ~119M params (ADR 0002, ADR 0008)."""
 
 from flax import nnx
 from jax import Array

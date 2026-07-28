@@ -1,7 +1,9 @@
 """Shared depth/width config for the full-attention, KDA, and hybrid variants.
 
-See ADR 0002 (docs/adr/0002-entity-vocab-size.md) for the vocab size / tying /
-param budget reasoning, and ADR 0001 (docs/adr/0001-nope-full-attention-positional-info-from-gating.md)
+See ADR 0008 (docs/adr/0008-shared-entity-pool-for-binding-generalization.md)
+for the current vocab size (superseding ADR 0002's disjoint-pool sizing,
+which is preserved as a record of the design that was tried and reverted),
+and ADR 0001 (docs/adr/0001-nope-full-attention-positional-info-from-gating.md)
 for why `positional_encoding` is a per-variant field rather than a shared constant.
 """
 
@@ -15,7 +17,7 @@ PositionalEncoding = Literal["rope", "none"]
 
 @dataclass(frozen=True)
 class ModelConfig:
-    vocab_size: int = 16_003
+    vocab_size: int = 8_003
     embed_dim: int = 768
     n_layers: int = 12
     n_heads: int = 12

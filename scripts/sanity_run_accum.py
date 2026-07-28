@@ -12,12 +12,12 @@ import numpy as np
 from flax import nnx
 
 from multihop.data.generator import total_vocab_size
-from multihop.eval import evaluate_grid
+from multihop.eval import EVAL_SEED, evaluate_grid
 from multihop.models.baseline import FullAttentionBaseline
 from multihop.models.config import ModelConfig
 from multihop.train import TrainConfig, build_optimizer_tx, train
 
-ENTITY_VOCAB_SIZE = 8_000  # ADR 0002
+ENTITY_VOCAB_SIZE = 8_000  # ADR 0008
 
 if __name__ == "__main__":
     model_config = ModelConfig(vocab_size=total_vocab_size(ENTITY_VOCAB_SIZE))
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     )
     optimizer = nnx.Optimizer(model, build_optimizer_tx(train_config), wrt=nnx.Param)
 
-    eval_rng = np.random.default_rng(1)
+    eval_rng = np.random.default_rng(EVAL_SEED)
 
     def eval_fn(m: FullAttentionBaseline) -> dict[tuple[int, int], float]:
         return dict(evaluate_grid(m, ENTITY_VOCAB_SIZE, eval_rng, n_examples_per_cell=32))

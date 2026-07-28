@@ -33,7 +33,7 @@ from multihop.models.baseline import FullAttentionBaseline
 from multihop.models.config import ModelConfig
 from multihop.train import TrainConfig, build_optimizer_tx, sample_training_microbatches, train_step_accum
 
-ENTITY_VOCAB_SIZE = 8_000  # ADR 0002
+ENTITY_VOCAB_SIZE = 8_000  # ADR 0008
 NUM_TIMING_STEPS = 150
 REAL_TOTAL_STEPS = 20_000
 

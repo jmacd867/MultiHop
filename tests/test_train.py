@@ -35,7 +35,7 @@ ENTITY_VOCAB_SIZE = 20
 
 
 def make_model() -> FullAttentionBaseline:
-    model_vocab_size = NUM_SPECIAL_TOKENS + 2 * ENTITY_VOCAB_SIZE
+    model_vocab_size = NUM_SPECIAL_TOKENS + ENTITY_VOCAB_SIZE
     config = ModelConfig(
         # max_seq_len must cover the longest cell these tests exercise:
         # hop_count=5, distance=45 -> 287 tokens (the production default).
@@ -125,7 +125,7 @@ def test_compute_loss_actually_supervises_the_answer_token() -> None:
     tokens, _query_positions, answers, *_ = sample_training_batch(
         rng, batch_size=8, vocab_size=ENTITY_VOCAB_SIZE
     )
-    model_vocab_size = NUM_SPECIAL_TOKENS + 2 * ENTITY_VOCAB_SIZE
+    model_vocab_size = NUM_SPECIAL_TOKENS + ENTITY_VOCAB_SIZE
     wrong_answers = (answers + 1) % model_vocab_size
 
     loss_correct = compute_loss(model, jnp.asarray(tokens), jnp.asarray(answers))

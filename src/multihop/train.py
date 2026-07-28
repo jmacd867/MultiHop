@@ -3,9 +3,10 @@
 Everything here is step-indexed, not epoch-indexed: examples are generated
 on-the-fly per step (no fixed training corpus, no epoch concept), so LR
 schedule, checkpoint cadence, and eval cadence are all expressed in steps.
-See ADR 0003 for why on-the-fly generation + held-out eval vocab is what
-makes the degradation grid measure capacity rather than being confounded
-by example-level memorization.
+See ADR 0003 for why on-the-fly generation is what makes the degradation
+grid measure capacity rather than being confounded by example-level
+memorization, and ADR 0008 for why entities are drawn from one shared
+pool rather than disjoint train/eval ranges.
 
 Each training step samples a single (hop_count, distance) cell for the
 whole batch (uniform over hop_count 1-5, and over the ADR-justified
@@ -32,7 +33,6 @@ from multihop.data.generator import (
     DISTANCES,
     MAX_HOP_COUNT,
     MIN_HOP_COUNT,
-    Split,
     generate_batch,
     reference_distractor_count,
     total_vocab_size,
@@ -113,12 +113,12 @@ def sample_cell(rng: np.random.Generator) -> tuple[int, int]:
 
 
 def sample_training_batch(
-    rng: np.random.Generator, batch_size: int, vocab_size: int, split: Split = "train"
+    rng: np.random.Generator, batch_size: int, vocab_size: int
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, int, int]:
     """Sample one (hop_count, distance) cell and generate a full batch from it."""
     hop_count, distance = sample_cell(rng)
     tokens, query_positions, answers = generate_batch(
-        rng, hop_count, distance, vocab_size, batch_size, split
+        rng, hop_count, distance, vocab_size, batch_size
     )
     return tokens, query_positions, answers, hop_count, distance
 
@@ -128,7 +128,6 @@ def sample_training_microbatches(
     micro_batch_size: int,
     grad_accum_steps: int,
     vocab_size: int,
-    split: Split = "train",
 ) -> tuple[list[tuple[np.ndarray, np.ndarray]], int, int]:
     """Sample one (hop_count, distance) cell, then draw `grad_accum_steps` independent micro-batches from it.
 
@@ -144,7 +143,7 @@ def sample_training_microbatches(
     expected_shape: tuple[int, ...] | None = None
     for _ in range(grad_accum_steps):
         tokens, _query_positions, answers = generate_batch(
-            rng, hop_count, distance, vocab_size, micro_batch_size, split
+            rng, hop_count, distance, vocab_size, micro_batch_size
         )
         if expected_shape is None:
             expected_shape = tokens.shape
@@ -356,7 +355,6 @@ def train(
             train_config.micro_batch_size,
             train_config.grad_accum_steps,
             vocab_size,
-            split="train",
         )
         jnp_micro_batches = [
             (jnp.asarray(tokens), jnp.asarray(answers)) for tokens, answers in micro_batches
