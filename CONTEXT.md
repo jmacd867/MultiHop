@@ -27,6 +27,7 @@ _Avoid_: Padding (reserve for tokenizer/framework padding, a different concept),
 
 **Distance**:
 The uniform gap (applied identically between every consecutive pair of Chain Facts in one example) separating chained Facts in the sequence. One scalar per example, not a per-hop profile.
+Not a clean axis: because the Distractor count is a fixed absolute 2 (ADR 0004) while the space to place them grows with Distance, low-Distance cells are densely packed with Distractors and high-Distance cells are sparse. Distance and interference density therefore vary together in opposite directions, and empirically the density effect wins at the low end — distance=3 is the *hardest* column, not the easiest. See ADR 0013.
 
 **Sequence Length**:
 The total token length of one generated example. An independently controllable target; the generator raises an error rather than silently relaxing Hop Count, Distance, or Distractor count when the combination can't fit.
@@ -38,6 +39,18 @@ _Avoid_: Model, architecture (both are broader — a Variant is specifically one
 **Grid Cell**:
 One (Hop Count, Distance) combination — 25 in total, from 5 Hop Counts × 5 Distances. The unit a Variant is scored on.
 _Avoid_: Configuration, setting (too vague — those also describe hyperparameters, which a Grid Cell is not).
+
+**Shortcut Floor**:
+The accuracy a model reaches in a Grid Cell *without traversing the Chain at
+all*, by outputting the entity that appears exactly once in the sequence — the
+Chain's terminal entity is the only one never used as a subject, so this always
+identifies the answer up to the Distractors that share the property. Equals
+1/(1 + Distractor count): **100% at distance=0** (no Distractors fit, so the
+cell is degenerate and cannot distinguish Variants) and **33.3% at
+distance≥3**. Identical at every Hop Count. This, not chance over the
+vocabulary, is the floor every result must be read against — see ADR 0012.
+_Avoid_: Baseline (means the full-attention Variant here), chance (~0.000125
+over the vocabulary, which is the wrong reference for this task).
 
 **Degradation Grid**:
 The experiment's output: one accuracy figure per Grid Cell for one Variant. Comparing Degradation Grids across Variants is the point of the study. A Degradation Grid measures capability on difficulty levels the Variant was trained on, not extrapolation to unseen ones.
