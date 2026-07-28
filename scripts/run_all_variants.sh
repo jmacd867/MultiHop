@@ -24,6 +24,17 @@ set -u
 cd "$(dirname "$0")/.." || exit 1
 export PATH="$HOME/.local/bin:$PATH"
 
+# Single-instance guard. Recovery has several possible triggers (a manual
+# relaunch, an @reboot entry, an operator noticing the box came back), and two
+# orchestrators would each pass their own `gpu_busy` check at slightly
+# different moments and start two Variants at once -- ~200GB of demand on a
+# 121GB shared box. flock makes the second instance exit immediately instead.
+exec 200>/tmp/multihop_orchestrator.lock
+if ! flock -n 200; then
+  echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] ORCH: another orchestrator holds the lock; exiting"
+  exit 0
+fi
+
 VARIANTS=(baseline kda hybrid)
 TOTAL_STEPS=20000
 MAX_ATTEMPTS=3
@@ -89,4 +100,16 @@ done
 
 log "generating comparison"
 uv run python scripts/compare_grids.py > run_logs/comparison.txt 2>&1
+
+# Remove the @reboot recovery entry now that there is nothing left to recover.
+# Done here, at successful completion, rather than by a script that edits the
+# crontab at boot time: this runs exactly once, on the one path where the entry
+# is provably no longer needed, and leaves it in place on every failure path
+# (including a verification abort above) where a reboot would still need it.
+# The marker comment is what makes removal surgical on a shared account.
+if crontab -l 2>/dev/null | grep -q "multihop-autorestart"; then
+  crontab -l 2>/dev/null | grep -v "multihop-autorestart" | crontab -
+  log "removed @reboot recovery entry from crontab (chain complete)"
+fi
+
 log "CHAIN COMPLETE -- see run_logs/comparison.txt"
