@@ -85,6 +85,14 @@ class Example:
     query_position: int
     chain_entities: tuple[int, ...]
     fact_spans: tuple[tuple[int, int], ...]
+    """Spans of the Chain Facts, **in emission order, not hop order**.
+
+    With `randomize_fact_order` set (ADR 0018) the two differ: `fact_spans[i]`
+    is the i-th Fact as laid out in the sequence, which is not hop i. Nothing
+    consumes this today, but ADR 0005's attention capture is the obvious future
+    consumer and would read per-hop attention from the wrong span. Zip it
+    against the emission order, or re-derive the hop from the span's subject.
+    """
     distractor_spans: tuple[tuple[int, int], ...]
 
 

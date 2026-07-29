@@ -510,3 +510,26 @@ def test_latest_checkpoint_ignores_a_half_written_step() -> None:
         # Simulate a run killed while writing step_2000's optimizer file.
         (directory / "step_2000.optimizer.safetensors").unlink()
         assert latest_checkpoint(directory) == directory / "step_1000"
+
+
+def test_train_variant_rejects_a_cadence_that_would_mislabel_resumed_grids() -> None:
+    """checkpoint_every must be a multiple of eval_every.
+
+    train_variant.py derives each eval grid's step as start_step + n*eval_every,
+    and start_step is always a checkpoint step. If checkpoint steps are not also
+    eval steps, every post-resume grid is mislabelled on disk -- and
+    compare_grids.py reads that step field as a metric. The end-of-run assertion
+    catches it only after the GPU time is spent.
+    """
+    import subprocess
+    import sys
+
+    script = Path(__file__).parent.parent / "scripts" / "train_variant.py"
+    result = subprocess.run(
+        [sys.executable, str(script), "baseline", "--steps", "10", "--eval-every", "300"],
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+    assert result.returncode != 0
+    assert "must be a multiple of" in (result.stdout + result.stderr)

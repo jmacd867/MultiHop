@@ -22,9 +22,14 @@ echo "===== multihop experiment status ====="
 date "+time:  %Y-%m-%d %H:%M %Z"
 uptime -p | sed 's/^/box:   /'
 
-trainer=$(pgrep -f "scripts/train_variant.py" | head -1)
+# One line per matching process. `head -1` used to pick the chain launcher,
+# whose command line contains `train_variant.py "$v"` and names every variant,
+# so it matched all of them and none of them correctly.
+trainer_cmds=$(for p in $(pgrep -f "scripts/train_variant.py" 2>/dev/null); do
+                 tr "\0" " " < /proc/"$p"/cmdline 2>/dev/null; echo; done)
+trainer=$(printf %s "$trainer_cmds" | grep -c "train_variant.py [a-z]")
 orch=$(pgrep -f "bash scripts/run_all_variants.sh" | head -1)
-echo "procs: trainer=${trainer:-NONE} orchestrator=${orch:-NONE}"
+echo "procs: ${trainer:-0} trainer proc(s), orchestrator=${orch:-NONE}"
 free -g | awk '/^Mem:/{printf "mem:   %sGB/%sGB used (normal 100-107; alarm >116)\n",$3,$2}'
 echo
 
@@ -33,8 +38,9 @@ printf -- "---------------------------------------------------------------------
 remaining_h=0
 for r in "${RUNS[@]}"; do
   log="run_logs/${r}.log"
-  [ -f "$log" ] || continue
+  [ -s "$log" ] || continue        # skip empty logs (created but never run)
   v="${r%%_*}"
+  case "$r" in *_fixed_run) want_fixed=1;; *) want_fixed=0;; esac
 
   # Read the run's own total and generator from the header it printed.
   total=$(grep -m1 -oP 'total_steps=\K[0-9]+' "$log" 2>/dev/null); total=${total:-20000}
@@ -48,7 +54,8 @@ for r in "${RUNS[@]}"; do
 
   if grep -q "^step ${total}: loss=" "$log" 2>/dev/null; then
     state="DONE"
-  elif [ -n "$trainer" ] && tr "\0" " " < /proc/"$trainer"/cmdline 2>/dev/null | grep -q -- "$v"; then
+  elif printf %s "$trainer_cmds" | grep "train_variant.py $v " |
+       { if [ "$want_fixed" = 1 ]; then grep -q -- "--fixed"; else grep -qv -- "--fixed"; fi; }; then
     state="RUNNING"; remaining_h=$(awk -v r="$remaining_h" -v s="$steps" -v t="$total" -v p="$(rate_for "$v")" 'BEGIN{print r+(t-s)*p/3600}')
   else
     state="stopped"
@@ -69,7 +76,7 @@ fi
 
 if grep -q "CHAIN COMPLETE" run_logs/orchestrator.log 2>/dev/null; then
   echo "CHAIN COMPLETE -- see run_logs/comparison.txt"
-elif [ -z "$trainer" ] && [ -z "$orch" ]; then
+elif [ "${trainer:-0}" = "0" ] && [ -z "$orch" ]; then
   echo "*** CHAIN STOPPED and not complete. Restart with:"
   echo "    setsid nohup bash scripts/run_all_variants.sh >> run_logs/orchestrator.log 2>&1 < /dev/null &"
 else

@@ -166,10 +166,13 @@ def make_example(
     # start-relative and end-relative offsets are destroyed.
     lengths = [distance] * (hop_count + 1)
     if condition == "jitter_end":
-        # Only ever *shortens* the final gap. Lengthening it pushed
-        # (5,45) from 287 to 335 tokens and tripped ModelConfig's
-        # max_seq_len=287 guard mid-probe. Shortening varies the
-        # end-relative offset just as well and can never overflow.
+        # Samples the final gap in [0, distance]; lengthening it pushed (5,45)
+        # from 287 to 335 tokens and tripped ModelConfig's max_seq_len guard.
+        # Note it does not strictly shorten: emit_gap clamps filler_count at 0,
+        # so a gap holding Distractors is pushed back up to 3*count -- 100% of
+        # the time at (1,3), ~30% at (1,9). ADR 0016's conclusion is unaffected,
+        # since pure-KDA's jitter_end score is read as evidence of a
+        # start-relative rule, which does not depend on the final gap's length.
         lengths[hop_count] = int(rng.integers(0, distance + 1))
     elif condition == "jitter_all" and distance > 0:
         total = (hop_count + 1) * distance

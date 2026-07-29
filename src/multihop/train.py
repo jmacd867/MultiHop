@@ -133,12 +133,21 @@ def sample_cell(rng: np.random.Generator) -> tuple[int, int]:
 
 
 def sample_training_batch(
-    rng: np.random.Generator, batch_size: int, vocab_size: int
+    rng: np.random.Generator,
+    batch_size: int,
+    vocab_size: int,
+    randomize_gaps: bool = False,
+    randomize_fact_order: bool = False,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, int, int]:
-    """Sample one (hop_count, distance) cell and generate a full batch from it."""
+    """Sample one (hop_count, distance) cell and generate a full batch from it.
+
+    Threads the generator flags even though only tests call this today: without
+    them a test asserting train/eval distribution parity through this function
+    would pass vacuously by exercising the uniform-gap path on both sides.
+    """
     hop_count, distance = sample_cell(rng)
     tokens, query_positions, answers = generate_batch(
-        rng, hop_count, distance, vocab_size, batch_size
+        rng, hop_count, distance, vocab_size, batch_size, randomize_gaps, randomize_fact_order
     )
     return tokens, query_positions, answers, hop_count, distance
 

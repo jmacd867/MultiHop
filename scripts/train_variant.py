@@ -137,6 +137,19 @@ def main(
         flush=True,
     )
 
+    # eval_fn derives each grid's step as start_step + n*eval_every, and
+    # start_step is always a checkpoint step. That arithmetic is only valid if
+    # checkpoint steps are also eval steps. --eval-every is a CLI flag while
+    # checkpoint_every is not, so an odd cadence would silently mislabel every
+    # post-resume grid on disk -- and compare_grids.py reads that step field as
+    # a metric. The end-of-run assertion catches it, but only after the GPU
+    # time is spent, and it raises before the corrective rewrite.
+    if train_config.checkpoint_every % train_config.eval_every != 0:
+        raise SystemExit(
+            f"checkpoint_every={train_config.checkpoint_every} must be a multiple of "
+            f"eval_every={train_config.eval_every}, or resumed runs mislabel their eval grids"
+        )
+
     optimizer = nnx.Optimizer(model, build_optimizer_tx(train_config), wrt=nnx.Param)
 
     repo_root = Path(__file__).parent.parent
