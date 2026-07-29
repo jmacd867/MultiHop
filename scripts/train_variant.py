@@ -51,8 +51,24 @@ an interrupted run still leaves every grid it completed.
 """
 
 import json
+import os
 import sys
 import time
+
+# Cap JAX's preallocated arena unless the caller has already chosen a value.
+#
+# Set here rather than in a launcher script because that is exactly how it was
+# bypassed: the cap lived in scripts/run_all_variants.sh, a second simpler
+# launcher was written for the corrected runs, and the cap did not come with
+# it. The hybrid then ran uncapped to 116GB of the shared box's 121GB -- inside
+# the range ADR 0009 and ADR 0010 both had to kill runs in -- with pure-KDA,
+# which is heavier still, queued behind it.
+#
+# Must precede any JAX import: the value is read when the backend initialises.
+# 0.65 leaves ~30GB of headroom, which covers the ~14GB of RSS drift measured
+# over a long run plus another user's session. It is an allocator setting only,
+# so numerics and cross-variant comparability are unaffected.
+os.environ.setdefault("XLA_PYTHON_CLIENT_MEM_FRACTION", "0.65")
 from dataclasses import replace
 from pathlib import Path
 from typing import Protocol
