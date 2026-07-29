@@ -166,7 +166,11 @@ def make_example(
     # start-relative and end-relative offsets are destroyed.
     lengths = [distance] * (hop_count + 1)
     if condition == "jitter_end":
-        lengths[hop_count] = int(rng.integers(0, 2 * distance + 4))
+        # Only ever *shortens* the final gap. Lengthening it pushed
+        # (5,45) from 287 to 335 tokens and tripped ModelConfig's
+        # max_seq_len=287 guard mid-probe. Shortening varies the
+        # end-relative offset just as well and can never overflow.
+        lengths[hop_count] = int(rng.integers(0, distance + 1))
     elif condition == "jitter_all" and distance > 0:
         total = (hop_count + 1) * distance
         # Every gap must still hold the Distractors assigned to it.

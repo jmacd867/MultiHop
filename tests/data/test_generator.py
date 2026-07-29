@@ -11,6 +11,7 @@ from multihop.data.generator import (
     InfeasibleConfigError,
     generate_example,
     max_distractor_capacity,
+    reference_distractor_count,
     required_sequence_length,
 )
 
@@ -205,3 +206,90 @@ def test_no_filler_tokens_leak_into_answer_or_query_block() -> None:
     example = generate_example(config, rng=rng)
     assert example.tokens[example.query_position] != FILLER_TOKEN
     assert example.tokens[example.query_position - 1] == QUERY_TOKEN
+
+
+def _answer_index(example: Example) -> int:
+    """Index of the answer token within the sequence (it is the last Fact's object)."""
+    positions = np.where(example.tokens[: example.query_position] == example.answer)[0]
+    return int(positions[-1])
+
+
+@pytest.mark.parametrize("hop_count", [1, 2, 3, 5])
+@pytest.mark.parametrize("distance", [3, 9, 45])
+def test_default_generation_has_the_fixed_offset_positional_shortcut(
+    hop_count: int, distance: int
+) -> None:
+    """ADR 0015: with uniform gaps the answer is always query_position - (distance + 3).
+
+    Asserted rather than merely documented because it is the property that
+    invalidated the first full experiment -- both trained Variants solved the
+    task by copying this position instead of traversing the Chain. A future
+    change that silently removed it would make old results incomparable, and
+    one that silently reintroduced it elsewhere would repeat the failure.
+    """
+    rng = np.random.default_rng(0)
+    config = GeneratorConfig(
+        hop_count=hop_count,
+        distance=distance,
+        distractor_count=reference_distractor_count(distance),
+        sequence_length=required_sequence_length(hop_count, distance),
+        vocab_size=200,
+    )
+    for _ in range(50):
+        example = generate_example(config, rng)
+        assert _answer_index(example) == example.query_position - (distance + 3)
+
+
+@pytest.mark.parametrize("hop_count", [2, 3, 5])
+@pytest.mark.parametrize("distance", [9, 45])
+def test_randomize_gaps_destroys_both_positional_offsets_without_changing_length(
+    hop_count: int, distance: int
+) -> None:
+    """The corrected generator must break start- AND end-relative offsets.
+
+    Randomising only the final gap would break the end-relative offset while
+    leaving every Fact at a fixed absolute index, so a start-relative rule
+    would survive. Both are checked here. Sequence length must be unchanged, or
+    `required_sequence_length` becomes wrong and
+    `sample_training_microbatches`' one-shape-per-step guarantee (which
+    `train_step_accum`'s jit relies on) breaks.
+    """
+    rng = np.random.default_rng(0)
+    config = GeneratorConfig(
+        hop_count=hop_count,
+        distance=distance,
+        distractor_count=reference_distractor_count(distance),
+        sequence_length=required_sequence_length(hop_count, distance),
+        vocab_size=200,
+        randomize_gaps=True,
+    )
+    expected_length = required_sequence_length(hop_count, distance)
+    absolute, relative = set(), set()
+    for _ in range(60):
+        example = generate_example(config, rng)
+        assert len(example.tokens) == expected_length
+        index = _answer_index(example)
+        absolute.add(index)
+        relative.add(example.query_position - index)
+
+    assert len(absolute) > 1, "answer stayed at a fixed absolute index (start-relative rule intact)"
+    assert len(relative) > 1, "answer stayed at a fixed offset from the query (end-relative intact)"
+
+
+def test_randomize_gaps_still_places_every_requested_distractor() -> None:
+    """Redistributing Filler must not squeeze out a Distractor."""
+    rng = np.random.default_rng(0)
+    for hop_count, distance in [(1, 9), (3, 21), (5, 45)]:
+        count = reference_distractor_count(distance)
+        config = GeneratorConfig(
+            hop_count=hop_count,
+            distance=distance,
+            distractor_count=count,
+            sequence_length=required_sequence_length(hop_count, distance),
+            vocab_size=200,
+            randomize_gaps=True,
+        )
+        for _ in range(30):
+            example = generate_example(config, rng)
+            assert len(example.distractor_spans) == count
+            assert len(example.fact_spans) == hop_count

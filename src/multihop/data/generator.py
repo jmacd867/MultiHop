@@ -39,6 +39,28 @@ class GeneratorConfig:
     distractor_count: int
     sequence_length: int
     vocab_size: int
+    randomize_gaps: bool = False
+    """Destroy the fixed-offset positional shortcut (ADR 0015).
+
+    With the default `False`, every gap is exactly `distance` tokens long, so
+    every Fact's index is a deterministic function of (hop_count, distance) and
+    `answer_index == query_position - (distance + 3)` always holds. That makes
+    the task 100% solvable by copying a fixed position, and both trained
+    Variants were measured doing exactly that -- their accuracy under
+    fact-order shuffling tracks the positional rule's to three decimals.
+
+    With `True`, the same total gap budget `(hop_count + 1) * distance` is
+    randomly partitioned across the gaps instead of split evenly. Total
+    sequence length is therefore **unchanged**, which matters for two reasons:
+    `required_sequence_length` stays correct, and
+    `sample_training_microbatches`' guarantee that every micro-batch in a step
+    shares one shape (which `train_step_accum`'s jit depends on) still holds.
+    What changes is that neither the start-relative nor the end-relative offset
+    to the answer is fixed any more.
+
+    Defaults to False so every existing run, test, and recorded result keeps
+    its exact semantics; this is opt-in for the corrected re-runs.
+    """
 
 
 @dataclass(frozen=True)
@@ -148,13 +170,36 @@ def generate_example(config: GeneratorConfig, rng: np.random.Generator) -> Examp
     for distractor_index, gap in enumerate(chosen_gaps):
         gap_to_distractors[gap].append(distractor_index)
 
+    # Per-gap lengths. Uniform `distance` by default; randomly partitioned when
+    # `randomize_gaps` is set, keeping the total identical so sequence length
+    # and shape-uniformity are preserved (see GeneratorConfig.randomize_gaps).
+    gap_lengths = [config.distance] * num_gaps
+    if config.randomize_gaps and config.distance > 0:
+        # Each gap must still hold the Distractors assigned to it, so only the
+        # Filler above that floor is free to move.
+        floors = [3 * len(gap_to_distractors[gap]) for gap in range(num_gaps)]
+        spare = num_gaps * config.distance - sum(floors)
+        if spare > 0:
+            cuts = sorted(int(c) for c in rng.integers(0, spare + 1, size=num_gaps - 1))
+        else:
+            # A fully packed cell -- (1,3) is the only one at the reference
+            # count (ADR 0013) -- has no Filler to redistribute, so it stays
+            # uniform and remains positionally solvable. Named in ADR 0015.
+            cuts = [0] * (num_gaps - 1)
+        previous = 0
+        gap_lengths = []
+        for cut in [*cuts, spare]:
+            gap_lengths.append(cut - previous)
+            previous = cut
+        gap_lengths = [floors[gap] + gap_lengths[gap] for gap in range(num_gaps)]
+
     tokens: list[int] = []
     fact_spans: list[tuple[int, int]] = []
     distractor_spans: list[tuple[int, int]] = []
 
     def emit_gap(gap_index: int) -> None:
         distractor_indices = gap_to_distractors[gap_index]
-        filler_count = config.distance - 3 * len(distractor_indices)
+        filler_count = gap_lengths[gap_index] - 3 * len(distractor_indices)
         items: list[tuple[str, int]] = [("filler", -1)] * filler_count + [
             ("distractor", d) for d in distractor_indices
         ]
@@ -202,6 +247,7 @@ def generate_batch(
     distance: int,
     entity_vocab_size: int,
     batch_size: int,
+    randomize_gaps: bool = False,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Generate a batch for one (hop_count, distance) cell. Shared by training (train.py) and eval (eval.py).
 
@@ -219,6 +265,7 @@ def generate_batch(
         distractor_count=distractor_count,
         sequence_length=sequence_length,
         vocab_size=entity_vocab_size,
+        randomize_gaps=randomize_gaps,
     )
     examples = [generate_example(gen_config, rng=rng) for _ in range(batch_size)]
     tokens = np.stack([example.tokens for example in examples])

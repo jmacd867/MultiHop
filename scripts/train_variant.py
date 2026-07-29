@@ -53,6 +53,7 @@ an interrupted run still leaves every grid it completed.
 import json
 import sys
 import time
+from dataclasses import replace
 from pathlib import Path
 from typing import Protocol
 
@@ -91,8 +92,23 @@ VARIANTS: dict[str, tuple[ModelFactory, PositionalEncoding]] = {
 }
 
 
-def main(variant: str) -> None:
+def main(
+    variant: str,
+    randomize_gaps: bool = False,
+    total_steps: int | None = None,
+    eval_every: int | None = None,
+) -> None:
+    """Train one Variant. `randomize_gaps` selects the ADR 0015-corrected task.
+
+    With the flag set, gap lengths are randomly partitioned instead of uniform,
+    which destroys the fixed-offset positional shortcut that both Variants of
+    the first experiment were measured solving the task with. Runs land in
+    `*_fixed_run` directories so the original results are never overwritten and
+    the two generators' numbers can never be silently combined -- they are not
+    comparable and must not appear in one table.
+    """
     model_cls, positional_encoding = VARIANTS[variant]
+    suffix = "_fixed" if randomize_gaps else ""
     model_config = ModelConfig(
         vocab_size=total_vocab_size(ENTITY_VOCAB_SIZE),
         positional_encoding=positional_encoding,
@@ -103,12 +119,20 @@ def main(variant: str) -> None:
         schedule = [i for i in range(model_config.n_layers) if is_full_attention_layer(i)]
         print(f"hybrid schedule (ADR 0011): full-attention at {schedule}, KDA elsewhere", flush=True)
 
-    train_config = TrainConfig()  # real defaults: 20,000 steps, batch_size=256, grad_accum_steps=16
+    # total_steps also sets the cosine schedule's decay horizon, so a shorter
+    # run gets a complete warmup->peak->decay cycle rather than a truncated one.
+    base = TrainConfig()
+    train_config = replace(
+        base,
+        total_steps=total_steps if total_steps is not None else base.total_steps,
+        eval_every=eval_every if eval_every is not None else base.eval_every,
+    )
     print(
         f"variant={variant} positional_encoding={positional_encoding} "
         f"total_steps={train_config.total_steps} batch_size={train_config.batch_size} "
         f"grad_accum_steps={train_config.grad_accum_steps} "
-        f"micro_batch_size={train_config.micro_batch_size}",
+        f"micro_batch_size={train_config.micro_batch_size} "
+        f"randomize_gaps={randomize_gaps} (ADR 0015)",
         flush=True,
     )
 
@@ -117,7 +141,7 @@ def main(variant: str) -> None:
     repo_root = Path(__file__).parent.parent
     runs_dir = repo_root / "runs"
     runs_dir.mkdir(parents=True, exist_ok=True)
-    grids_path = runs_dir / f"{variant}_grids.json"
+    grids_path = runs_dir / f"{variant}{suffix}_grids.json"
     grids: list[dict[str, object]] = []
 
     train_rng = np.random.default_rng(0)
@@ -128,7 +152,7 @@ def main(variant: str) -> None:
     # examples the *final* Degradation Grid is scored on. See save_checkpoint.
     rngs = {"train": train_rng, "eval": eval_rng}
 
-    checkpoint_dir = repo_root / "checkpoints" / f"{variant}_run"
+    checkpoint_dir = repo_root / "checkpoints" / f"{variant}{suffix}_run"
     start_step = 0
     existing = latest_checkpoint(checkpoint_dir)
     if existing is not None:
@@ -153,7 +177,7 @@ def main(variant: str) -> None:
     grids_before_resume = len(grids)
 
     def eval_fn(m: MultihopModel) -> dict[tuple[int, int], float]:
-        grid = dict(evaluate_grid(m, ENTITY_VOCAB_SIZE, eval_rng))
+        grid = dict(evaluate_grid(m, ENTITY_VOCAB_SIZE, eval_rng, randomize_gaps=randomize_gaps))
         # Written after every eval rather than once at the end: a 20,000-step
         # run is many hours, and an interrupted one should still leave every
         # grid it managed to produce. JSON keys must be strings, so cells are
@@ -189,6 +213,7 @@ def main(variant: str) -> None:
         eval_fn=eval_fn,
         start_step=start_step,
         checkpoint_rngs=rngs,
+        randomize_gaps=randomize_gaps,
     )
 
     # `train()` is the authority on which step each grid came from, so reconcile
@@ -217,6 +242,14 @@ def main(variant: str) -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2 or sys.argv[1] not in VARIANTS:
-        raise SystemExit(f"usage: {sys.argv[0]} {{{','.join(VARIANTS)}}}")
-    main(sys.argv[1])
+    if len(sys.argv) < 2 or sys.argv[1] not in VARIANTS:
+        raise SystemExit(
+            f"usage: {sys.argv[0]} {{{','.join(VARIANTS)}}} "
+            "[--fixed] [--steps N] [--eval-every N]"
+        )
+    args = sys.argv[2:]
+
+    def flag(name: str) -> int | None:
+        return int(args[args.index(name) + 1]) if name in args else None
+
+    main(sys.argv[1], "--fixed" in args, flag("--steps"), flag("--eval-every"))
