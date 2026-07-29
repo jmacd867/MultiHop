@@ -8,3 +8,4 @@
 [2026-07-29T01:45:29Z] ORCH: baseline: final checkpoint verified finite
 [2026-07-29T01:45:29Z] ORCH: === kda ===
 [2026-07-29T01:45:29Z] ORCH: kda: attempt 1/3 (resumes from latest checkpoint if one exists)
+[2026-07-29T13:12:41Z] ORCH: another orchestrator holds the lock; exiting
