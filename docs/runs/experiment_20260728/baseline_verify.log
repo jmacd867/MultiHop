@@ -1,0 +1,5 @@
+step_20000:
+  model: 110 tensors, step=20000 -- all finite
+  optimizer: 223 tensors, step=20000 -- all finite
+
+RESULT: all checkpoints finite

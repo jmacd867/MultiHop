@@ -85,9 +85,42 @@ for variant in "${VARIANTS[@]}"; do
     fi
     wait_for_free_gpu
     log "$variant: attempt $attempt/$MAX_ATTEMPTS (resumes from latest checkpoint if one exists)"
+
+    # Cap JAX's preallocated arena for the hybrid run only.
+    #
+    # Measured drift: pure-KDA's sweep peaked at 105GB, but its real 11h run
+    # sat at 119GB of 121GB -- ~14GB accumulates over a long run (compilation
+    # caches, fragmentation) that a 100-step sweep never shows. Hybrid measured
+    # 106.9GB, so the same drift would put it at the ceiling on a *shared* box,
+    # which is the 118-121GB range ADR 0009 and ADR 0010 both had to kill runs
+    # in. Shrinking the arena ~92GB -> ~79GB leaves headroom for that drift.
+    #
+    # This is an allocator setting, not a compute one: it changes what JAX
+    # reserves up front, not what is computed, so numerics and cross-variant
+    # comparability are untouched. If the tighter arena does cause an XLA
+    # allocation failure, the retry below resumes from the last checkpoint, and
+    # ESCALATE_MEM_FRACTION widens it rather than repeating the same failure.
+    mem_fraction=""
+    if [ "$variant" = "hybrid" ]; then
+      mem_fraction=$(awk -v a="$attempt" 'BEGIN{print (a==1)?0.65:0.80}')
+      log "$variant: XLA_PYTHON_CLIENT_MEM_FRACTION=$mem_fraction (attempt $attempt)"
+    fi
+
     # Appended, never truncated: a resumed attempt must not erase the
     # earlier attempt's losses, which are the record of what actually ran.
-    uv run python scripts/train_variant.py "$variant" >> "run_logs/${variant}_run.log" 2>&1
+    # `200>&-` closes the lock fd in the child. Without it the trainer inherits
+    # it, and since flock is held as long as *any* process keeps the descriptor
+    # open, the lock outlives the orchestrator that took it. That bit once:
+    # replacing the orchestrator mid-run left the orphaned trainer holding the
+    # lock, so the replacement exited immediately and the chain was left with
+    # no supervisor at all -- it would have stopped after that variant instead
+    # of continuing. The lock must belong to the orchestrator alone.
+    if [ -n "$mem_fraction" ]; then
+      XLA_PYTHON_CLIENT_MEM_FRACTION="$mem_fraction" \
+        uv run python scripts/train_variant.py "$variant" >> "run_logs/${variant}_run.log" 2>&1 200>&-
+    else
+      uv run python scripts/train_variant.py "$variant" >> "run_logs/${variant}_run.log" 2>&1 200>&-
+    fi
     log "$variant: attempt $attempt exited with status $?"
     attempt=$((attempt + 1))
     sleep 30
