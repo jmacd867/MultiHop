@@ -39,6 +39,21 @@ class GeneratorConfig:
     distractor_count: int
     sequence_length: int
     vocab_size: int
+    randomize_fact_order: bool = False
+    """Destroy the Fact-ordering shortcut (ADR 0018).
+
+    Chain Facts are emitted between gaps while Distractors are emitted inside
+    them, so with Facts in Chain order the answer-bearing Fact's *rank* among
+    the Fact-shaped blocks stays concentrated even when gap lengths are
+    randomised. Measured: "always answer the object of the k-th block" scores
+    0.68 at (5,45) against 0.14 chance, and 1.00 at (1,3). Emitting Chain
+    Facts in a random order collapses that to 0.155 -- essentially chance.
+
+    `randomize_gaps` alone is therefore NOT sufficient to force traversal, and
+    the two flags are meant to be set together. They are separate fields so
+    each shortcut can be tested in isolation.
+    """
+
     randomize_gaps: bool = False
     """Destroy the fixed-offset positional shortcut (ADR 0015).
 
@@ -215,12 +230,21 @@ def generate_example(config: GeneratorConfig, rng: np.random.Generator) -> Examp
                 tokens.extend([subject, obj, SEP_TOKEN])
                 distractor_spans.append((start, start + 3))
 
+    # Emission order of the Chain Facts. In Chain order by default; shuffled
+    # when `randomize_fact_order` is set, so the answer-bearing Fact's rank
+    # among the Fact-shaped blocks carries no information (ADR 0018). The
+    # answer is `chain_entities[-1]` regardless of the order they are emitted
+    # in -- only the Chain's structure defines it, not its layout.
+    fact_order = list(range(config.hop_count))
+    if config.randomize_fact_order:
+        rng.shuffle(fact_order)
+
     emit_gap(0)
-    for hop in range(config.hop_count):
+    for gap_index, hop in enumerate(fact_order, start=1):
         start = len(tokens)
         tokens.extend([chain_entities[hop], chain_entities[hop + 1], SEP_TOKEN])
         fact_spans.append((start, start + 3))
-        emit_gap(hop + 1)
+        emit_gap(gap_index)
 
     tokens.append(QUERY_TOKEN)
     tokens.append(chain_entities[0])
@@ -248,6 +272,7 @@ def generate_batch(
     entity_vocab_size: int,
     batch_size: int,
     randomize_gaps: bool = False,
+    randomize_fact_order: bool = False,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Generate a batch for one (hop_count, distance) cell. Shared by training (train.py) and eval (eval.py).
 
@@ -266,6 +291,7 @@ def generate_batch(
         sequence_length=sequence_length,
         vocab_size=entity_vocab_size,
         randomize_gaps=randomize_gaps,
+        randomize_fact_order=randomize_fact_order,
     )
     examples = [generate_example(gen_config, rng=rng) for _ in range(batch_size)]
     tokens = np.stack([example.tokens for example in examples])

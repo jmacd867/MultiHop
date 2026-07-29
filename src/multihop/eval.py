@@ -34,9 +34,11 @@ def accuracy_at_cell(
     n_examples: int,
     rng: np.random.Generator,
     randomize_gaps: bool = False,
+    randomize_fact_order: bool = False,
 ) -> float:
     tokens, query_positions, answers = generate_batch(
-        rng, hop_count, distance, entity_vocab_size, n_examples, randomize_gaps
+        rng, hop_count, distance, entity_vocab_size, n_examples, randomize_gaps,
+        randomize_fact_order,
     )
 
     logits = model(jnp.asarray(tokens))  # type: ignore[operator]
@@ -52,6 +54,7 @@ def evaluate_grid(
     rng: np.random.Generator | None = None,
     n_examples_per_cell: int = EVAL_EXAMPLES_PER_CELL,
     randomize_gaps: bool = False,
+    randomize_fact_order: bool = False,
 ) -> Mapping[tuple[int, int], float]:
     """Accuracy broken down by (hop_count, distance) at the fixed reference distractor count.
 
@@ -74,7 +77,7 @@ def evaluate_grid(
     return {
         (hop_count, distance): accuracy_at_cell(
             model, hop_count, distance, entity_vocab_size, n_examples_per_cell, rng,
-            randomize_gaps,
+            randomize_gaps, randomize_fact_order,
         )
         for hop_count in HOP_COUNTS
         for distance in DISTANCES

@@ -293,3 +293,82 @@ def test_randomize_gaps_still_places_every_requested_distractor() -> None:
             example = generate_example(config, rng)
             assert len(example.distractor_spans) == count
             assert len(example.fact_spans) == hop_count
+
+
+@pytest.mark.parametrize("hop_count,distance", [(2, 9), (3, 9), (5, 9), (5, 45)])
+def test_randomize_fact_order_removes_the_rank_shortcut(hop_count: int, distance: int) -> None:
+    """ADR 0018: gap randomisation alone leaves the answer's *rank* predictable.
+
+    Chain Facts are emitted between gaps while Distractors go inside them, so
+    with Facts in Chain order the answer-bearing Fact lands at a concentrated
+    rank among the Fact-shaped blocks even though its token offset varies.
+    "Always answer the object of the k-th block" then scores far above chance
+    with no traversal -- 0.68 at (5,45) against 0.14 chance.
+
+    This is the regression guard: the best fixed-rank guess must be close to
+    chance once Facts are emitted in random order. Without it, a future change
+    that reverts to Chain order would silently restore a ~50-70% shortcut and
+    the experiment would measure it instead of retrieval, exactly as the first
+    two attempts did.
+    """
+    rng = np.random.default_rng(0)
+    config = GeneratorConfig(
+        hop_count=hop_count,
+        distance=distance,
+        distractor_count=reference_distractor_count(distance),
+        sequence_length=required_sequence_length(hop_count, distance),
+        vocab_size=8000,
+        randomize_gaps=True,
+        randomize_fact_order=True,
+    )
+    rank_hits: dict[int, int] = {}
+    block_counts = []
+    for _ in range(600):
+        example = generate_example(config, rng)
+        tokens = list(example.tokens)
+        blocks = sorted(
+            (i, int(tokens[i + 1]))
+            for i in range(example.query_position - 1)
+            if tokens[i + 2] == SEP_TOKEN and tokens[i] >= NUM_SPECIAL_TOKENS
+        )
+        block_counts.append(len(blocks))
+        for rank, (_index, obj) in enumerate(blocks):
+            if obj == example.answer:
+                rank_hits[rank] = rank_hits.get(rank, 0) + 1
+
+    total = sum(rank_hits.values())
+    best = max(rank_hits.values()) / total
+    chance = 1.0 / (sum(block_counts) / len(block_counts))
+    # Generous multiple of chance: the point is to catch a return to ~0.5-0.7,
+    # not to pin down sampling noise at 600 examples.
+    assert best < chance * 1.6, (
+        f"best fixed-rank guess {best:.3f} vs chance {chance:.3f} -- "
+        "the Fact-ordering shortcut is back"
+    )
+
+
+def test_chain_order_is_the_default_and_still_leaks() -> None:
+    """The leak must remain reproducible with the flag off, so the fix is falsifiable."""
+    rng = np.random.default_rng(0)
+    config = GeneratorConfig(
+        hop_count=5,
+        distance=9,
+        distractor_count=reference_distractor_count(9),
+        sequence_length=required_sequence_length(5, 9),
+        vocab_size=8000,
+        randomize_gaps=True,
+    )
+    rank_hits: dict[int, int] = {}
+    for _ in range(600):
+        example = generate_example(config, rng)
+        tokens = list(example.tokens)
+        blocks = sorted(
+            (i, int(tokens[i + 1]))
+            for i in range(example.query_position - 1)
+            if tokens[i + 2] == SEP_TOKEN and tokens[i] >= NUM_SPECIAL_TOKENS
+        )
+        for rank, (_index, obj) in enumerate(blocks):
+            if obj == example.answer:
+                rank_hits[rank] = rank_hits.get(rank, 0) + 1
+    best = max(rank_hits.values()) / sum(rank_hits.values())
+    assert best > 0.4, f"expected the documented ~0.68 rank leak, got {best:.3f}"

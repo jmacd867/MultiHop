@@ -177,7 +177,8 @@ def main(
     grids_before_resume = len(grids)
 
     def eval_fn(m: MultihopModel) -> dict[tuple[int, int], float]:
-        grid = dict(evaluate_grid(m, ENTITY_VOCAB_SIZE, eval_rng, randomize_gaps=randomize_gaps))
+        grid = dict(evaluate_grid(m, ENTITY_VOCAB_SIZE, eval_rng, randomize_gaps=randomize_gaps,
+                              randomize_fact_order=randomize_gaps))
         # Written after every eval rather than once at the end: a 20,000-step
         # run is many hours, and an interrupted one should still leave every
         # grid it managed to produce. JSON keys must be strings, so cells are
@@ -214,6 +215,7 @@ def main(
         start_step=start_step,
         checkpoint_rngs=rngs,
         randomize_gaps=randomize_gaps,
+        randomize_fact_order=randomize_gaps,
     )
 
     # `train()` is the authority on which step each grid came from, so reconcile

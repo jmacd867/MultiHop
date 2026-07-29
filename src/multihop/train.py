@@ -149,6 +149,7 @@ def sample_training_microbatches(
     grad_accum_steps: int,
     vocab_size: int,
     randomize_gaps: bool = False,
+    randomize_fact_order: bool = False,
 ) -> tuple[list[tuple[np.ndarray, np.ndarray]], int, int]:
     """Sample one (hop_count, distance) cell, then draw `grad_accum_steps` independent micro-batches from it.
 
@@ -164,7 +165,8 @@ def sample_training_microbatches(
     expected_shape: tuple[int, ...] | None = None
     for _ in range(grad_accum_steps):
         tokens, _query_positions, answers = generate_batch(
-            rng, hop_count, distance, vocab_size, micro_batch_size, randomize_gaps
+            rng, hop_count, distance, vocab_size, micro_batch_size, randomize_gaps,
+            randomize_fact_order,
         )
         if expected_shape is None:
             expected_shape = tokens.shape
@@ -471,6 +473,7 @@ def train(
     start_step: int = 0,
     checkpoint_rngs: Mapping[str, np.random.Generator] | None = None,
     randomize_gaps: bool = False,
+    randomize_fact_order: bool = False,
 ) -> TrainingHistory:
     """Train from `start_step + 1` to `train_config.total_steps`.
 
@@ -507,6 +510,7 @@ def train(
             train_config.grad_accum_steps,
             vocab_size,
             randomize_gaps,
+            randomize_fact_order,
         )
         jnp_micro_batches = [
             (jnp.asarray(tokens), jnp.asarray(answers)) for tokens, answers in micro_batches
