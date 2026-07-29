@@ -92,7 +92,56 @@ ShortConv (ADR 0009).
 
 *(filled in as runs complete)*
 
-### baseline (full attention)
+### baseline (full attention) -- COMPLETE
+
+12,000 steps in 3.71h. Final checkpoint written; tensor verification runs in
+the finalize pass once all three Variants are done.
+
+```
+headline (all 25 cells, not to be quoted)   0.8019
+VALID surface (hop>=2, distance>=3)         0.7676
+traversal-free ceiling                      0.4803
+excess                                      +0.2873
+
+hop\dist       3       9      21      45    mean   ceiling   excess
+    2      0.826   0.756   0.764   0.719   0.766     0.60    +0.166
+    3      0.863   0.770   0.770   0.773   0.794     0.47    +0.324
+    4      0.795   0.764   0.768   0.734   0.765     0.45    +0.315
+    5      0.746   0.764   0.727   0.744   0.745     0.41    +0.335
+
+cells above their own ceiling: 16/16
+```
+
+**Full attention genuinely traverses the Chain.** All 16 valid cells clear
+their own traversal-free ceiling, by +0.2873 on average against a per-cell
+standard error of ~0.022 -- roughly 13 SE, not a marginal call. This is the
+first valid capability measurement this project has produced; every earlier
+grid was a shortcut score.
+
+**The excess grows with hop_count** (+0.166 at hop=2 to +0.335 at hop=5),
+which is the discriminator registered in the methodology above. The
+traversal-free ceiling *declines* with depth, so a model exploiting a surface
+heuristic would show a *shrinking* excess. It shows the opposite.
+
+Two calibration checks behave exactly as the design predicts, which is
+independent evidence the grid is measuring what it claims:
+
+- **distance=0 column: 1.000** -- degenerate by ADR 0012 (no Distractors fit,
+  so appears-once solves it outright). The model has clearly mastered the
+  surface rules; the 0.7676 is not a training failure.
+- **hop_count=1 row: 0.753** -- above its 33.3% content ceiling (ADR 0017)
+  because ordering still leaks there (ADR 0018), as recorded.
+
+**Not saturated.** 0.7676 against a 1.0 ceiling leaves genuine headroom in
+both directions, which is what makes the Variant comparison able to show a
+difference at all -- the failure mode of the first experiment was two grids of
+ones.
+
+**On the learning curve.** It was called plateaued twice during the run and
+resumed climbing both times (at ~0.66 around step 3,500, and again near 0.79
+around step 10,500) as the cosine schedule decayed. Four consecutive flat eval
+grids are not sufficient evidence of convergence on this task -- recorded
+because the same judgement will be tempting for the remaining two Variants.
 
 ### hybrid (3:1)
 
