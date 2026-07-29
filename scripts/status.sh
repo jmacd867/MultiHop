@@ -10,8 +10,10 @@
 # survives being retyped on a phone.
 
 cd "$(dirname "$0")/.." || exit 1
-VARIANTS=(baseline kda hybrid)
-TOTAL=20000
+# Each run's log is the source of truth for its own step count and generator,
+# because the corrected re-runs (ADR 0015) use a different total and a
+# different task. Hardcoding one TOTAL silently mislabelled them.
+RUNS=(baseline_run kda_run hybrid_run baseline_fixed_run kda_fixed_run hybrid_fixed_run)
 
 # Measured steady-state seconds/step (docs/runs/timing_20260728/budget.md).
 rate_for() { case "$1" in baseline) echo 0.9338;; kda) echo 1.9977;; hybrid) echo 1.7471;; esac; }
@@ -26,38 +28,37 @@ echo "procs: trainer=${trainer:-NONE} orchestrator=${orch:-NONE}"
 free -g | awk '/^Mem:/{printf "mem:   %sGB/%sGB used (normal 100-107; alarm >116)\n",$3,$2}'
 echo
 
+printf "%-18s %-8s %14s %10s %11s %s\n" RUN STATE STEPS LAST_LOSS NON-FINITE TASK
+printf -- "----------------------------------------------------------------------------------\n"
 remaining_h=0
-for v in "${VARIANTS[@]}"; do
-  log="run_logs/${v}_run.log"
-  if [ ! -f "$log" ]; then
-    printf "%-9s not started\n" "$v"
-    remaining_h=$(awk -v r="$remaining_h" -v t="$TOTAL" -v s="$(rate_for "$v")" 'BEGIN{print r + t*s/3600}')
-    continue
-  fi
+for r in "${RUNS[@]}"; do
+  log="run_logs/${r}.log"
+  [ -f "$log" ] || continue
+  v="${r%%_*}"
+
+  # Read the run's own total and generator from the header it printed.
+  total=$(grep -m1 -oP 'total_steps=\K[0-9]+' "$log" 2>/dev/null); total=${total:-20000}
+  fixed=$(grep -m1 -oP 'randomize_gaps=\K(True|False)' "$log" 2>/dev/null)
+  case "$fixed" in True) task="CORRECTED (ADR 0015)";; False) task="original (shortcut)";; *) task="original (shortcut)";; esac
 
   steps=$(grep -c "^step .*loss=" "$log" 2>/dev/null); steps=${steps:-0}
   last=$(grep "^step .*loss=" "$log" | tail -1 | grep -oP 'loss=\K[0-9.naif-]+')
   nonfinite=$(grep -cE "loss=(nan|inf|-inf)" "$log" 2>/dev/null); nonfinite=${nonfinite:-0}
-  pct=$(awk -v s="$steps" -v t="$TOTAL" 'BEGIN{printf "%.1f", 100*s/t}')
+  pct=$(awk -v s="$steps" -v t="$total" 'BEGIN{printf "%.0f", 100*s/t}')
 
-  if grep -q "^step ${TOTAL}: loss=" "$log" 2>/dev/null; then
+  if grep -q "^step ${total}: loss=" "$log" 2>/dev/null; then
     state="DONE"
-  elif [ "$trainer" != "" ] && [ "$(tr -d ' ' < /proc/"$trainer"/cmdline 2>/dev/null | grep -c "$v")" != "0" ]; then
-    state="RUNNING"
+  elif [ -n "$trainer" ] && tr "\0" " " < /proc/"$trainer"/cmdline 2>/dev/null | grep -q -- "$v"; then
+    state="RUNNING"; remaining_h=$(awk -v r="$remaining_h" -v s="$steps" -v t="$total" -v p="$(rate_for "$v")" 'BEGIN{print r+(t-s)*p/3600}')
   else
     state="stopped"
   fi
 
-  printf "%-9s %-8s %6s/%d (%s%%)  last_loss=%s  non-finite=%s\n" \
-    "$v" "$state" "$steps" "$TOTAL" "$pct" "${last:-?}" "$nonfinite"
+  printf "%-18s %-8s %6s/%-7s(%3s%%) %10s %11s %s\n" \
+    "$r" "$state" "$steps" "$total" "$pct" "${last:-?}" "$nonfinite" "$task"
 
   # Latest three eval grids -- the actual experimental signal.
-  grep "eval mean accuracy" "$log" 2>/dev/null | tail -3 | sed 's/^/            /'
-
-  if [ "$state" != "DONE" ]; then
-    remaining_h=$(awk -v r="$remaining_h" -v s="$steps" -v t="$TOTAL" -v p="$(rate_for "$v")" \
-      'BEGIN{print r + (t-s)*p/3600}')
-  fi
+  grep "eval mean accuracy" "$log" 2>/dev/null | tail -3 | sed 's/^/    /'
 done
 
 echo
