@@ -42,13 +42,27 @@ _Avoid_: Configuration, setting (too vague — those also describe hyperparamete
 
 **Shortcut Floor**:
 The accuracy a model reaches in a Grid Cell *without traversing the Chain at
-all*, by outputting the entity that appears exactly once in the sequence — the
-Chain's terminal entity is the only one never used as a subject, so this always
-identifies the answer up to the Distractors that share the property. Equals
-1/(1 + Distractor count): **100% at distance=0** (no Distractors fit, so the
-cell is degenerate and cannot distinguish Variants) and **33.3% at
-distance≥3**. Identical at every Hop Count. This, not chance over the
-vocabulary, is the floor every result must be read against — see ADR 0012.
+all*. **The floor is 1.0 in every cell** — the task is entirely solvable
+without reasoning. Two distinct shortcuts exist, and the stronger one dominates:
+
+- **Positional (ADR 0015, the binding one).** Every gap is exactly Distance
+  tokens long whatever is packed into it, and every Fact is exactly 3 tokens,
+  so `answer_index == query_position - (Distance + 3)` always. Copying that
+  position scores **100% in every cell, at every Hop Count and every Distractor
+  count** (measured: 0 violations in 7,500 examples, including at maximum
+  Distractor capacity). No eval-time parameter removes it.
+- **Appears-exactly-once (ADR 0012).** The Chain's terminal entity is the only
+  one never used as a subject. Scores 1/(1 + Distractor count): 100% at
+  distance=0, 33.3% at distance≥3.
+
+An earlier version of this entry named the 33.3%/100% appears-once figure as
+"the floor every result must be read against". That is **false** and is kept
+here as a correction, because it is the sentence a reader would most reasonably
+trust: the appears-once figure is a floor, not *the* floor.
+
+Consequence: **no accuracy number from the current generator distinguishes
+traversal from shortcut execution.** Which mechanism a trained model actually
+uses is a separate empirical question — see `scripts/probe_mechanism.py`.
 _Avoid_: Baseline (means the full-attention Variant here), chance (~0.000125
 over the vocabulary, which is the wrong reference for this task).
 
