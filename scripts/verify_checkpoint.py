@@ -41,13 +41,28 @@ def verify_file(path: Path) -> tuple[int, list[str]]:
 
 
 def verify_step(base: Path) -> bool:
-    """Verify the model+optimizer pair for one extensionless checkpoint base path."""
+    """Verify one checkpoint. A model-only checkpoint is valid, not a failure.
+
+    ADR 0007 splits model and optimizer into separate files specifically so
+    that eval, ADR 0005 attention capture, and cross-variant weight comparison
+    never load optimizer state. An archived or copied checkpoint therefore
+    legitimately consists of the model file alone. Reporting that as
+    "NON-FINITE TENSORS FOUND" -- as this script originally did -- is both
+    false (nothing non-finite was found) and actively misleading, since the
+    exit code gates whether a run is treated as healthy.
+
+    Only a missing *model* file, or an actual non-finite tensor, is a failure.
+    """
     ok = True
+    model_path = base.parent / f"{base.name}.model.safetensors"
+    if not model_path.exists():
+        print(f"  model: MISSING ({model_path.name}) -- cannot verify")
+        return False
+
     for kind in ("model", "optimizer"):
         path = base.parent / f"{base.name}.{kind}.safetensors"
         if not path.exists():
-            print(f"  {kind}: MISSING ({path.name})")
-            ok = False
+            print(f"  {kind}: absent (model-only checkpoint -- expected for an archive)")
             continue
         count, bad = verify_file(path)
         with safe_open(path, framework="numpy") as f:
@@ -77,7 +92,11 @@ def main(target: Path) -> int:
         print(f"{base.name}:")
         all_ok &= verify_step(base)
 
-    print("\nRESULT: " + ("all checkpoints finite" if all_ok else "NON-FINITE TENSORS FOUND"))
+    # Distinguish the two failure modes rather than labelling both as
+    # non-finite: a missing file and a corrupt tensor call for different
+    # responses, and mislabelling one as the other is how a healthy run gets
+    # discarded (or a corrupt one kept).
+    print("\nRESULT: " + ("all tensors finite" if all_ok else "FAILED -- see per-file lines above"))
     return 0 if all_ok else 1
 
 
