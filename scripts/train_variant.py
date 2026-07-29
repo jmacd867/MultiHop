@@ -132,7 +132,8 @@ def main(
         f"total_steps={train_config.total_steps} batch_size={train_config.batch_size} "
         f"grad_accum_steps={train_config.grad_accum_steps} "
         f"micro_batch_size={train_config.micro_batch_size} "
-        f"randomize_gaps={randomize_gaps} (ADR 0015)",
+        f"randomize_gaps={randomize_gaps} (ADR 0015) "
+        f"randomize_fact_order={randomize_gaps} (ADR 0018)",
         flush=True,
     )
 
