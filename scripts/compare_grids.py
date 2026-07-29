@@ -35,7 +35,13 @@ from multihop.data.generator import (
     reference_distractor_count,
 )
 
-VARIANT_ORDER = ("baseline", "kda", "hybrid")
+# Corrected-generator runs (ADR 0015/0018) carry a _fixed suffix and are NOT
+# comparable to the originals -- different task. Both are listed so either set
+# can be compared, but they must never be read across.
+VARIANT_ORDER = (
+    "baseline_fixed", "hybrid_fixed", "kda_fixed",
+    "baseline", "kda", "hybrid",
+)
 HOP_COUNTS = tuple(range(MIN_HOP_COUNT, MAX_HOP_COUNT + 1))
 
 # Two standard errors at 512 examples/cell is ~4.4pp at p=0.5, but the
@@ -54,6 +60,28 @@ EVAL_EVERY = 500
 # last few percent are noise-dominated at 512 examples/cell (~2.2pp standard
 # error), so a stricter criterion would measure sampling luck.
 CRITERION_HEADROOM = 0.9
+
+
+CEILING_PATH = Path(__file__).parent.parent / "docs" / "runs" / "shortcut_ceiling_corrected.json"
+
+
+def traversal_free_ceiling() -> dict[tuple[int, int], float] | None:
+    """Measured best score per cell WITHOUT traversal, on the corrected generator.
+
+    Produced by `scripts/shortcut_ceiling.py`. This is the bar a corrected-run
+    result must clear, and it is much higher than ADR 0012's appears-once floor:
+    0.60 at hop=2 falling to 0.41 at hop=5, because the strongest surface rule
+    ("never a subject, and its own subject IS an object") filters Distractors
+    hanging off the Query entity. Reporting against the 0.333 floor instead
+    would credit a model for accuracy any surface heuristic reaches.
+
+    Returns None when the cache is absent, in which case callers fall back to
+    the appears-once floor and say so, rather than silently using the wrong bar.
+    """
+    if not CEILING_PATH.exists():
+        return None
+    raw = json.loads(CEILING_PATH.read_text())
+    return {(int(k.split(",")[0]), int(k.split(",")[1])): float(v) for k, v in raw.items()}
 
 
 def shortcut_floor(distance: int) -> float:
@@ -235,27 +263,52 @@ def main(runs_dir: Path) -> None:
         print(f"  cells at/below the shortcut floor: {len(below)}/{len(scoring)}"
               + (f" -> {sorted(below)}" if below else ""))
 
+        ceiling = traversal_free_ceiling()
+        if ceiling is not None and "fixed" in variant:
+            scoring_cells = [c for c in grid if c[1] != 0 and c[0] != 1]
+            cleared = [c for c in scoring_cells if grid[c] > ceiling[c]]
+            mean_acc = sum(grid[c] for c in scoring_cells) / len(scoring_cells)
+            mean_ceil = sum(ceiling[c] for c in scoring_cells) / len(scoring_cells)
+            print(f"\n=== {variant} vs the traversal-free ceiling (ADR 0018) ===")
+            print(f"  VALID surface (hop>=2, distance>=3, {len(scoring_cells)} cells)")
+            print(f"    accuracy {mean_acc:.4f}   ceiling {mean_ceil:.4f}   "
+                  f"excess {mean_acc - mean_ceil:+.4f}")
+            print(f"    cells above their own ceiling: {len(cleared)}/{len(scoring_cells)}")
+            print("  hop=1 and distance=0 are excluded: capped and degenerate "
+                  "respectively (ADR 0017, ADR 0012)")
+            if len(cleared) < len(scoring_cells) * 0.75:
+                print("  *** NOT clear of surface heuristics -- do not read as retrieval ***")
+
         curves = load_all_grids(runs_dir, variant)
         render_steps_to_criterion(
             curves, f"=== {variant} -- steps to criterion (the metric that survives saturation) ==="
         )
 
-    for variant in ("hybrid", "kda"):
-        if variant in grids and "baseline" in grids:
-            delta = {cell: grids[variant][cell] - grids["baseline"][cell] for cell in grids["baseline"]}
+    for base, others in (("baseline_fixed", ("hybrid_fixed", "kda_fixed")),
+                         ("baseline", ("hybrid", "kda"))):
+        if base not in grids:
+            continue
+        for variant in others:
+            if variant not in grids:
+                continue
+            delta = {cell: grids[variant][cell] - grids[base][cell] for cell in grids[base]}
             render(
                 delta,
-                f"=== {variant} minus baseline (percentage points; "
+                f"=== {variant} minus {base} (percentage points; "
                 f"'~' = below {SIGNIFICANCE_PP}pp, i.e. within per-cell noise) ===",
                 as_delta=True,
             )
-            print(f"  mean delta: {sum(delta.values()) / len(delta) * 100:+.2f}pp")
+            print(f"  mean delta (all cells): {sum(delta.values()) / len(delta) * 100:+.2f}pp")
+            valid = [c for c in delta if c[1] != 0 and c[0] != 1]
+            if valid:
+                print(f"  mean delta (VALID surface, hop>=2 d>=3): "
+                      f"{sum(delta[c] for c in valid) / len(valid) * 100:+.2f}pp")
 
-    if "hybrid" in grids and "kda" in grids:
-        delta = {cell: grids["hybrid"][cell] - grids["kda"][cell] for cell in grids["kda"]}
+    if "hybrid_fixed" in grids and "kda_fixed" in grids:
+        delta = {c: grids["hybrid_fixed"][c] - grids["kda_fixed"][c] for c in grids["kda_fixed"]}
         render(
             delta,
-            "=== hybrid minus kda (percentage points; what the 3 full-attention layers buy) ===",
+            "=== hybrid_fixed minus kda_fixed (what the 3 full-attention layers buy) ===",
             as_delta=True,
         )
         print(f"  mean delta: {sum(delta.values()) / len(delta) * 100:+.2f}pp")

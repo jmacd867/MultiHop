@@ -22,8 +22,10 @@ matters because the cells differ enormously: distance=0 admits no Distractors
 at all, and hop_count=1 admits no chain-continuation signal (ADR 0017).
 """
 
+import json
 import sys
 from collections import Counter
+from pathlib import Path
 
 import numpy as np
 
@@ -152,6 +154,17 @@ def main(randomized: bool) -> None:
     print()
     print("Any reported accuracy at or below its cell's MAX is consistent with a")
     print("traversal-free strategy and is NOT evidence of Chain retrieval.")
+
+    # Cached so compare_grids.py reports against the measured ceiling rather
+    # than re-deriving it (or, as it did originally, against ADR 0012's
+    # appears-once floor, which is far too low a bar on the corrected task).
+    if randomized:
+        out = Path(__file__).parent.parent / "docs" / "runs" / "shortcut_ceiling_corrected.json"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(
+            {f"{h},{d}": round(v, 4) for (h, d), v in per_cell_max.items()}, indent=2
+        ))
+        print(f"\nwrote per-cell ceilings to {out}")
 
 
 if __name__ == "__main__":
