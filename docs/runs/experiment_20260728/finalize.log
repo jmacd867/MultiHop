@@ -1,2 +1,10 @@
 [20:38:00Z] FINALIZE: baseline reached step 12000
 [04:04:01Z] FINALIZE: hybrid reached step 12000
+[12:26:02Z] FINALIZE: kda reached step 12000
+[12:26:02Z] FINALIZE: all three complete -- verifying final checkpoints
+[12:26:04Z] FINALIZE: baseline: final checkpoint all tensors finite
+[12:26:07Z] FINALIZE: hybrid: final checkpoint all tensors finite
+[12:26:07Z] FINALIZE: kda: *** CHECKPOINT VERIFICATION FAILED -- grid not trustworthy ***
+[12:26:07Z] FINALIZE: generating comparison against the measured traversal-free ceiling
+[12:26:07Z] FINALIZE: !!! one or more Variants failed verification -- see FIXED_FAILED_VARIANTS
+[12:26:07Z] FINALIZE: DONE -- run_logs/comparison_corrected.txt

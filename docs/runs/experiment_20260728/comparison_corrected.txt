@@ -1,0 +1,244 @@
+
+=== baseline_fixed (step 12000) -- raw accuracy ===
+hop \ dist        0        3        9       21       45
+-------------------------------------------------------
+        1    1.0000   1.0000   0.5840   0.5820   0.5996
+        2    1.0000   0.8262   0.7559   0.7637   0.7188
+        3    1.0000   0.8633   0.7695   0.7695   0.7734
+        4    1.0000   0.7949   0.7637   0.7676   0.7344
+        5    1.0000   0.7461   0.7637   0.7266   0.7441
+  overall mean: 0.8019
+  by hop_count: 1:0.753  2:0.813  3:0.835  4:0.812  5:0.796
+  by distance:  0:1.000  3:0.846  9:0.727  21:0.722  45:0.714
+
+=== baseline_fixed (step 12000) -- above shortcut floor (ADR 0012) ===
+hop \ dist         0         3         9        21        45
+------------------------------------------------------------
+        1     1.000*     1.000     0.376     0.373     0.399
+        2     1.000*     0.739     0.634     0.646     0.578
+        3     1.000*     0.795     0.654     0.654     0.660
+        4     1.000*     0.692     0.646     0.651     0.602
+        5     1.000*     0.619     0.646     0.590     0.616
+  * distance=0 is degenerate (shortcut floor = 1.000); raw accuracy shown
+  elsewhere: fraction of headroom above the 0.333 floor (0.0 = shortcut only, 1.0 = perfect)
+  cells at/below the shortcut floor: 0/20
+
+=== baseline_fixed vs the traversal-free ceiling (ADR 0018) ===
+  VALID surface (hop>=2, distance>=3, 16 cells)
+    accuracy 0.7676   ceiling 0.4803   excess +0.2872
+    cells above their own ceiling: 16/16
+  hop=1 and distance=0 are excluded: capped and degenerate respectively (ADR 0017, ADR 0012)
+
+=== baseline_fixed -- steps to criterion (the metric that survives saturation) ===
+hop \ dist         0         3         9        21        45
+------------------------------------------------------------
+        1       1500      1750     never     never     never
+        2       2250     never     never     never     never
+        3       2750     never     never     never     never
+        4       2750     never     never     never     never
+        5       3000     never     never     never     never
+  steps to reach 90% of headroom above the ADR 0012 shortcut floor
+  ('never' = not reached within the run; lower is better)
+  RESOLUTION: eval cadence is 500 steps, and this Variant's cells resolve to only 5 distinct value(s) [1500, 1750, 2250, 2750, 3000].
+
+=== hybrid_fixed (step 12000) -- raw accuracy ===
+hop \ dist        0        3        9       21       45
+-------------------------------------------------------
+        1    1.0000   1.0000   0.6055   0.6035   0.6309
+        2    1.0000   0.8164   0.7227   0.7422   0.7109
+        3    1.0000   0.8398   0.7910   0.7930   0.7812
+        4    1.0000   0.8008   0.7949   0.7969   0.7910
+        5    0.9941   0.7637   0.7871   0.7910   0.7637
+  overall mean: 0.8128
+  by hop_count: 1:0.768  2:0.798  3:0.841  4:0.837  5:0.820
+  by distance:  0:0.999  3:0.844  9:0.740  21:0.745  45:0.736
+
+=== hybrid_fixed (step 12000) -- above shortcut floor (ADR 0012) ===
+hop \ dist         0         3         9        21        45
+------------------------------------------------------------
+        1     1.000*     1.000     0.408     0.405     0.446
+        2     1.000*     0.725     0.584     0.613     0.566
+        3     1.000*     0.760     0.687     0.689     0.672
+        4     1.000*     0.701     0.692     0.695     0.687
+        5     0.994*     0.646     0.681     0.687     0.646
+  * distance=0 is degenerate (shortcut floor = 1.000); raw accuracy shown
+  elsewhere: fraction of headroom above the 0.333 floor (0.0 = shortcut only, 1.0 = perfect)
+  cells at/below the shortcut floor: 0/20
+
+=== hybrid_fixed vs the traversal-free ceiling (ADR 0018) ===
+  VALID surface (hop>=2, distance>=3, 16 cells)
+    accuracy 0.7804   ceiling 0.4803   excess +0.3001
+    cells above their own ceiling: 16/16
+  hop=1 and distance=0 are excluded: capped and degenerate respectively (ADR 0017, ADR 0012)
+
+=== hybrid_fixed -- steps to criterion (the metric that survives saturation) ===
+hop \ dist         0         3         9        21        45
+------------------------------------------------------------
+        1       6500      6750     never     never     never
+        2       6500     never     never     never     never
+        3       6750     never     never     never     never
+        4       6750     never     never     never     never
+        5       7250     never     never     never     never
+  steps to reach 90% of headroom above the ADR 0012 shortcut floor
+  ('never' = not reached within the run; lower is better)
+  RESOLUTION: eval cadence is 500 steps, and this Variant's cells resolve to only 3 distinct value(s) [6500, 6750, 7250].
+  ^^ too coarse to rank cells confidently -- a one-eval difference here is 500 steps of quantisation, not a measured gap. Treat ordering as suggestive only.
+
+=== kda_fixed (step 11750) -- raw accuracy ===
+hop \ dist        0        3        9       21       45
+-------------------------------------------------------
+        1    1.0000   1.0000   0.5938   0.5996   0.5566
+        2    1.0000   0.7402   0.6895   0.6562   0.6465
+        3    1.0000   0.6172   0.6758   0.6270   0.6406
+        4    1.0000   0.6621   0.6094   0.6309   0.6270
+        5    1.0000   0.5742   0.5762   0.6309   0.6328
+  overall mean: 0.7195
+  by hop_count: 1:0.750  2:0.746  3:0.712  4:0.706  5:0.683
+  by distance:  0:1.000  3:0.719  9:0.629  21:0.629  45:0.621
+
+=== kda_fixed (step 11750) -- above shortcut floor (ADR 0012) ===
+hop \ dist         0         3         9        21        45
+------------------------------------------------------------
+        1     1.000*     1.000     0.391     0.399     0.335
+        2     1.000*     0.610     0.534     0.484     0.470
+        3     1.000*     0.426     0.514     0.440     0.461
+        4     1.000*     0.493     0.414     0.446     0.440
+        5     1.000*     0.361     0.364     0.446     0.449
+  * distance=0 is degenerate (shortcut floor = 1.000); raw accuracy shown
+  elsewhere: fraction of headroom above the 0.333 floor (0.0 = shortcut only, 1.0 = perfect)
+  cells at/below the shortcut floor: 0/20
+
+=== kda_fixed vs the traversal-free ceiling (ADR 0018) ===
+  VALID surface (hop>=2, distance>=3, 16 cells)
+    accuracy 0.6398   ceiling 0.4803   excess +0.1594
+    cells above their own ceiling: 16/16
+  hop=1 and distance=0 are excluded: capped and degenerate respectively (ADR 0017, ADR 0012)
+
+=== kda_fixed -- steps to criterion (the metric that survives saturation) ===
+hop \ dist         0         3         9        21        45
+------------------------------------------------------------
+        1       4500      8000     never     never     never
+        2       5500     never     never     never     never
+        3       6250     never     never     never     never
+        4       6250     never     never     never     never
+        5       6250     never     never     never     never
+  steps to reach 90% of headroom above the ADR 0012 shortcut floor
+  ('never' = not reached within the run; lower is better)
+  RESOLUTION: eval cadence is 500 steps, and this Variant's cells resolve to only 4 distinct value(s) [4500, 5500, 6250, 8000].
+
+=== baseline (step 20000) -- raw accuracy ===
+hop \ dist        0        3        9       21       45
+-------------------------------------------------------
+        1    1.0000   1.0000   1.0000   1.0000   1.0000
+        2    1.0000   1.0000   1.0000   1.0000   1.0000
+        3    1.0000   1.0000   1.0000   1.0000   1.0000
+        4    1.0000   1.0000   1.0000   1.0000   1.0000
+        5    1.0000   1.0000   1.0000   1.0000   1.0000
+  overall mean: 1.0000
+  by hop_count: 1:1.000  2:1.000  3:1.000  4:1.000  5:1.000
+  by distance:  0:1.000  3:1.000  9:1.000  21:1.000  45:1.000
+
+=== baseline (step 20000) -- above shortcut floor (ADR 0012) ===
+hop \ dist         0         3         9        21        45
+------------------------------------------------------------
+        1     1.000*     1.000     1.000     1.000     1.000
+        2     1.000*     1.000     1.000     1.000     1.000
+        3     1.000*     1.000     1.000     1.000     1.000
+        4     1.000*     1.000     1.000     1.000     1.000
+        5     1.000*     1.000     1.000     1.000     1.000
+  * distance=0 is degenerate (shortcut floor = 1.000); raw accuracy shown
+  elsewhere: fraction of headroom above the 0.333 floor (0.0 = shortcut only, 1.0 = perfect)
+  cells at/below the shortcut floor: 0/20
+
+=== baseline -- steps to criterion (the metric that survives saturation) ===
+hop \ dist         0         3         9        21        45
+------------------------------------------------------------
+        1       2500      3500      2500      2500      3000
+        2       2500      3000      2500      2500      2500
+        3       3000      3000      2500      2500      2500
+        4       2500      3000      2500      2500      2500
+        5       2500      3000      2500      2500      2500
+  steps to reach 90% of headroom above the ADR 0012 shortcut floor
+  ('never' = not reached within the run; lower is better)
+  RESOLUTION: eval cadence is 500 steps, and this Variant's cells resolve to only 3 distinct value(s) [2500, 3000, 3500].
+  ^^ too coarse to rank cells confidently -- a one-eval difference here is 500 steps of quantisation, not a measured gap. Treat ordering as suggestive only.
+
+=== kda (step 20000) -- raw accuracy ===
+hop \ dist        0        3        9       21       45
+-------------------------------------------------------
+        1    1.0000   1.0000   1.0000   1.0000   1.0000
+        2    1.0000   1.0000   1.0000   1.0000   1.0000
+        3    1.0000   1.0000   1.0000   1.0000   1.0000
+        4    1.0000   1.0000   1.0000   1.0000   1.0000
+        5    1.0000   1.0000   1.0000   1.0000   1.0000
+  overall mean: 1.0000
+  by hop_count: 1:1.000  2:1.000  3:1.000  4:1.000  5:1.000
+  by distance:  0:1.000  3:1.000  9:1.000  21:1.000  45:1.000
+
+=== kda (step 20000) -- above shortcut floor (ADR 0012) ===
+hop \ dist         0         3         9        21        45
+------------------------------------------------------------
+        1     1.000*     1.000     1.000     1.000     1.000
+        2     1.000*     1.000     1.000     1.000     1.000
+        3     1.000*     1.000     1.000     1.000     1.000
+        4     1.000*     1.000     1.000     1.000     1.000
+        5     1.000*     1.000     1.000     1.000     1.000
+  * distance=0 is degenerate (shortcut floor = 1.000); raw accuracy shown
+  elsewhere: fraction of headroom above the 0.333 floor (0.0 = shortcut only, 1.0 = perfect)
+  cells at/below the shortcut floor: 0/20
+
+=== kda -- steps to criterion (the metric that survives saturation) ===
+hop \ dist         0         3         9        21        45
+------------------------------------------------------------
+        1       4000      3500      4500      5500      5000
+        2       4000      4000      5000      5000      4500
+        3       5000      4000      5000      5000      5000
+        4       3000      4000      4000      4500      4500
+        5       3500      3500      5000      5000      4500
+  steps to reach 90% of headroom above the ADR 0012 shortcut floor
+  ('never' = not reached within the run; lower is better)
+  RESOLUTION: eval cadence is 500 steps, and this Variant's cells resolve to only 6 distinct value(s) [3000, 3500, 4000, 4500, 5000, 5500].
+NOTE: runs/hybrid_grids.json missing -- skipping hybrid
+
+=== hybrid_fixed minus baseline_fixed (percentage points; '~' = below 2.2pp, i.e. within per-cell noise) ===
+hop \ dist        0        3        9       21       45
+-------------------------------------------------------
+        1     +0.0~    +0.0~    +2.1~    +2.1~    +3.1 
+        2     +0.0~    -1.0~    -3.3     -2.1~    -0.8~
+        3     +0.0~    -2.3     +2.1~    +2.3     +0.8~
+        4     +0.0~    +0.6~    +3.1     +2.9     +5.7 
+        5     -0.6~    +1.8~    +2.3     +6.4     +2.0~
+  mean delta (all cells): +1.09pp
+  mean delta (VALID surface, hop>=2 d>=3): +1.28pp
+
+=== kda_fixed minus baseline_fixed (percentage points; '~' = below 2.2pp, i.e. within per-cell noise) ===
+hop \ dist        0        3        9       21       45
+-------------------------------------------------------
+        1     +0.0~    +0.0~    +1.0~    +1.8~    -4.3 
+        2     +0.0~    -8.6     -6.6    -10.7     -7.2 
+        3     +0.0~   -24.6     -9.4    -14.3    -13.3 
+        4     +0.0~   -13.3    -15.4    -13.7    -10.7 
+        5     +0.0~   -17.2    -18.8     -9.6    -11.1 
+  mean delta (all cells): -8.24pp
+  mean delta (VALID surface, hop>=2 d>=3): -12.78pp
+
+=== kda minus baseline (percentage points; '~' = below 2.2pp, i.e. within per-cell noise) ===
+hop \ dist        0        3        9       21       45
+-------------------------------------------------------
+        1     +0.0~    +0.0~    +0.0~    +0.0~    +0.0~
+        2     +0.0~    +0.0~    +0.0~    +0.0~    +0.0~
+        3     +0.0~    +0.0~    +0.0~    +0.0~    +0.0~
+        4     +0.0~    +0.0~    +0.0~    +0.0~    +0.0~
+        5     +0.0~    +0.0~    +0.0~    +0.0~    +0.0~
+  mean delta (all cells): +0.00pp
+  mean delta (VALID surface, hop>=2 d>=3): +0.00pp
+
+=== hybrid_fixed minus kda_fixed (what the 3 full-attention layers buy) ===
+hop \ dist        0        3        9       21       45
+-------------------------------------------------------
+        1     +0.0~    +0.0~    +1.2~    +0.4~    +7.4 
+        2     +0.0~    +7.6     +3.3     +8.6     +6.4 
+        3     +0.0~   +22.3    +11.5    +16.6    +14.1 
+        4     +0.0~   +13.9    +18.6    +16.6    +16.4 
+        5     -0.6~   +18.9    +21.1    +16.0    +13.1 
+  mean delta: +9.34pp

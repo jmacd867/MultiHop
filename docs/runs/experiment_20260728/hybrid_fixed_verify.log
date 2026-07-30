@@ -1,0 +1,5 @@
+step_12000:
+  model: 191 tensors, step=12000 -- all finite
+  optimizer: 385 tensors, step=12000 -- all finite
+
+RESULT: all tensors finite

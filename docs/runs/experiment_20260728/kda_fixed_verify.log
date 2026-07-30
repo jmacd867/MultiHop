@@ -1,0 +1,4 @@
+step_12000:
+  model: MISSING (step_12000.model.safetensors) -- cannot verify
+
+RESULT: FAILED -- see per-file lines above
