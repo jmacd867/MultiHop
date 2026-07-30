@@ -143,7 +143,64 @@ around step 10,500) as the cosine schedule decayed. Four consecutive flat eval
 grids are not sufficient evidence of convergence on this task -- recorded
 because the same judgement will be tempting for the remaining two Variants.
 
-### hybrid (3:1)
+### hybrid (3:1) -- COMPLETE
+
+12,000 steps in 4.86h, with one interruption at step 4,067: the run was killed
+and resumed from `step_4000` to apply the memory cap (see Operational record).
+Exact resume, so this is not a confound -- both RNG generators were restored
+and the 16 earlier eval grids preserved.
+
+```
+                  headline    VALID surface (16 cells)
+baseline            0.8019          0.7676
+hybrid              0.8128          0.7804
+
+hybrid - baseline:  +0.0128  (+1.28pp)  =  0.6 SE
+cells clearing the traversal-free ceiling: 16/16 (both Variants)
+```
+
+**The 3:1 hybrid matches full attention.** +1.28pp against a ~2.2pp per-cell
+standard error is 0.6 SE -- not a difference. At 125M parameters and matched
+budget, replacing 9 of 12 attention layers with KDA costs nothing measurable in
+multi-hop retrieval accuracy on this task.
+
+Per-cell difference (positive = hybrid better):
+
+```
+hop\dist       3       9      21      45   hop mean
+    2     -0.010  -0.033  -0.021  -0.008   -0.018
+    3     -0.023  +0.021  +0.023  +0.008   +0.007
+    4     +0.006  +0.031  +0.029  +0.057   +0.031
+    5     +0.018  +0.023  +0.064  +0.020   +0.031
+```
+
+11/16 cells favour the hybrid and 8/16 exceed the 2.2pp noise floor, but they
+point in **both** directions. The structure is the opposite of a capability
+cost: the hybrid is marginally *worse* at hop=2 and marginally *better* at
+hop=4-5. If the 3:1 ratio were eroding chaining, deep chains -- where a
+compressed state has the most to lose -- are exactly where it should show, and
+it does not.
+
+**The real difference is acquisition, not capability.** The hybrid sat at
+chance through step 2,500 (the baseline was already at 0.54), then climbed the
+same curve shifted ~4,000 steps right and closed the gap entirely by step
+11,500:
+
+| step | 2500 | 5000 | 7500 | 10000 | 12000 |
+|---|---:|---:|---:|---:|---:|
+| baseline | 0.538 | 0.690 | 0.724 | 0.787 | 0.802 |
+| hybrid | 0.0005 | 0.131 | 0.654 | 0.772 | 0.813 |
+
+This reproduces the one finding that survived the invalidated experiment --
+KDA-family Variants learn more slowly -- but on a valid task it now means
+something different: **slower to learn genuine traversal, equally capable once
+learned.**
+
+A judgement worth recording: at step 2,500 the hybrid's loss floor had moved
+only 0.22 nats across 2,000 steps and this was flagged as a possible failure to
+learn. It was a long pre-takeoff plateau. That is the second time a plateau
+call on this task was premature, and the reason the run was left to finish
+rather than cut short.
 
 ### pure-KDA
 
